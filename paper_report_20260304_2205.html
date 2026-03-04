@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Infra & 推理论文周报 · 2026-03-04 22:05</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #161a23;
+    --surface2: #1e2330;
+    --border: rgba(255,255,255,0.07);
+    --accent: #4f8ef7;
+    --accent2: #a78bfa;
+    --hot: #f97316;
+    --green: #34d399;
+    --text: #e2e8f0;
+    --text-muted: #64748b;
+    --text-dim: #94a3b8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    min-height: 100vh;
+    padding: 40px 20px 80px;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 10%, rgba(79,142,247,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(167,139,250,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-left h1 {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .header-left .subtitle {
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .header-right { text-align: right; }
+
+  .meta-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-family: 'Space Mono', monospace;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    margin-left: 8px;
+  }
+
+  .stats-bar {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  .stat-card {
+    flex: 1;
+    min-width: 140px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .stat-card .stat-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .stat-card .stat-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .section-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    margin-bottom: 40px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+
+  thead tr {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  thead th {
+    padding: 14px 16px;
+    text-align: left;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .paper-row {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.2s;
+  }
+
+  .paper-row:last-child { border-bottom: none; }
+  .paper-row:hover { background: rgba(79, 142, 247, 0.04); }
+
+  td {
+    padding: 14px 16px;
+    vertical-align: top;
+  }
+
+  .rank-cell {
+    width: 52px;
+    text-align: center;
+    padding-top: 16px;
+  }
+
+  .rank-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+
+  .paper-row:nth-child(1) .rank-num { color: #fbbf24; font-size: 1rem; }
+  .paper-row:nth-child(2) .rank-num { color: #94a3b8; font-size: 0.95rem; }
+  .paper-row:nth-child(3) .rank-num { color: #cd7c4a; font-size: 0.9rem; }
+
+  .title-cell {
+    min-width: 240px;
+    max-width: 300px;
+  }
+
+  .paper-title {
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 500;
+    line-height: 1.4;
+    display: block;
+    transition: color 0.2s;
+  }
+
+  .paper-title:hover {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* 摘要 hover tooltip */
+  .summary-cell {
+    min-width: 220px;
+    max-width: 300px;
+    color: var(--text-dim);
+    font-size: 0.83rem;
+    line-height: 1.7;
+    position: relative;
+  }
+
+  .summary-short {
+    cursor: help;
+    border-bottom: 1px dashed rgba(100,116,139,0.4);
+    display: inline;
+  }
+
+  .summary-hint {
+    display: block;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+    opacity: 0.7;
+  }
+
+  /* 自定义 tooltip 浮层 */
+  #summary-tooltip {
+    position: fixed;
+    z-index: 9999;
+    max-width: 420px;
+    background: #1e2330;
+    border: 1px solid rgba(79,142,247,0.3);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    pointer-events: none;
+    display: none;
+    word-break: break-word;
+  }
+
+  /* 词云 */
+  .wordcloud-wrap {
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    overflow: hidden;
+    margin-bottom: 40px;
+    padding: 8px;
+  }
+
+  .kw-cell {
+    min-width: 160px;
+    max-width: 200px;
+  }
+
+  .kw-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    margin: 2px 3px 2px 0;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    background: rgba(79,142,247,0.1);
+    border: 1px solid rgba(79,142,247,0.2);
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .affil-cell {
+    min-width: 100px;
+    color: var(--text-dim);
+    font-size: 0.82rem;
+  }
+
+  .hot-cell {
+    white-space: nowrap;
+    text-align: center;
+    min-width: 110px;
+  }
+
+  .hot-score {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--hot);
+  }
+
+  .hot-bar-bg {
+    width: 70px;
+    height: 4px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    margin: 4px auto 2px;
+    overflow: hidden;
+  }
+
+  .hot-bar {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  .hot-badges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 3px;
+    margin-top: 3px;
+  }
+
+  .fire-badge {
+    display: inline-block;
+    font-size: 0.68rem;
+    color: var(--hot);
+  }
+
+  .cite-badge {
+    display: inline-block;
+    font-size: 0.66rem;
+    color: #60a5fa;
+    background: rgba(96,165,250,0.12);
+    border-radius: 4px;
+    padding: 1px 5px;
+    cursor: default;
+  }
+
+  .inf-cite-badge {
+    display: inline-block;
+    font-size: 0.66rem;
+    color: #fbbf24;
+    background: rgba(251,191,36,0.12);
+    border-radius: 4px;
+    padding: 1px 5px;
+    cursor: default;
+  }
+
+  .date-cell {
+    white-space: nowrap;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    min-width: 80px;
+  }
+
+  /* 词云 */
+  .wordcloud-wrap {
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    overflow: hidden;
+    margin-bottom: 40px;
+    text-align: center;
+    padding: 8px;
+  }
+
+  .kw-cell {
+    min-width: 160px;
+    max-width: 200px;
+  }
+  .all-papers-wrap {
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    overflow: hidden;
+    margin-bottom: 40px;
+  }
+
+  .all-papers-wrap summary {
+    padding: 14px 20px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    background: var(--surface2);
+    user-select: none;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .all-papers-wrap summary::-webkit-details-marker { display: none; }
+
+  .all-papers-wrap summary::before {
+    content: '▶';
+    font-size: 0.65rem;
+    transition: transform 0.2s;
+  }
+
+  .all-papers-wrap[open] summary::before {
+    transform: rotate(90deg);
+  }
+
+  .all-papers-wrap summary:hover { color: var(--text); }
+
+  .all-papers-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+
+  .all-papers-table th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+
+  .all-papers-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  .all-papers-table tr:last-child td { border-bottom: none; }
+  .all-papers-table tr:hover td { background: rgba(79,142,247,0.03); }
+
+  .all-papers-table a {
+    color: var(--text-dim);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .all-papers-table a:hover {
+    color: var(--accent);
+    text-decoration: underline;
+  }
+
+  .footer {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 768px) {
+    .header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .summary-cell, .kw-cell { display: none; }
+  }
+</style>
+</head>
+<body>
+<div id="summary-tooltip"></div>
+<div class="container">
+    <div class="header-left">
+      <h1>📚 AI Infra &amp; 推理论文周报</h1>
+      <p class="subtitle">LLM Inference · KV Cache · AI Infrastructure · Speculative Decoding</p>
+    </div>
+    <div class="header-right">
+      <span class="meta-tag">📅 2026-03-04 22:05</span>
+      <span class="meta-tag">⏱ 最近7天</span>
+    </div>
+  </header>
+
+  <div class="stats-bar">
+    <div class="stat-card">
+      <span class="stat-label">发现论文</span>
+      <span class="stat-value">38</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">精选 Top</span>
+      <span class="stat-value">10</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">监控主题</span>
+      <span class="stat-value">5</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">热度最高</span>
+      <span class="stat-value" style="font-size:1.1rem;color:var(--hot)">100分</span>
+    </div>
+  </div>
+
+  <p class="section-title">🏆 本周热门论文 Top 10 — 综合热度排名</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>排名</th>
+          <th>标题</th>
+          <th>中文摘要</th>
+          <th>关键词</th>
+          <th>发布者</th>
+          <th>热度分 (0-100)</th>
+          <th>发布日期</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#1</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.02737v1" target="_blank" class="paper-title">Ouroboros: Wafer-Scale SRAM CIM with Token-Grained Pipelining for Large Language Model Inference</a>
+            </td>
+            <td class="summary-cell">
+                <span class="summary-short" data-full="Large language model (LLM) inference demands vast memory capacity and hierarchical memory structures, but conventional architectures suffer from excessive energy and latency costs due to frequent data movement across deep memory tiers. To address this, we propose a wafer-scale SRAM-based Computing-in-Memory (CIM) architecture that performs all LLM operations in situ within the first-level SRAM, eliminating off-chip data migration and achieving unprecedented energy efficiency. However, wafer-scale SRAM CIM presents multiple challenges due to the limited first-level memory capacity, which requires efficient compute-memory resource allocation. To enable efficient LLM execution on this architecture, we propose three key innovations: Token-Grained Pipelining – Conventional sequence-level pipelining suffers from underutilization due to varying input sequence lengths and batching policies. We introduce a fine-grained token-level pipeline that mitigates sequence length variations, enhancing the utilization of CIM cores while minimizing the storage capacity required for activation. Distributed Dynamic KV Cache Management – KV cache storage occupies significant memory in LLM inference. We optimize on-chip KV caching by decoupling CIM memory from compute assignment, leveraging fragmented SRAM CIM memory within already-allocated cores for efficient KV storage, and reducing dedicated memory overhead. Communication-Aware and Fault-Tolerant Core Mapping – Efficient execution on wafer-scale CIM requires optimal mapping from transformer blocks to CIM cores to minimize inter-(pipeline) stage communication while ensuring intra-stage compute locality. We design a network-on-wafer-aware mapping strategy that places pipeline stages in close proximity while also distributing large layers efficiently across multiple cores. This mapping accounts for core-level defects, improving fault tolerance in wafer-scale deployment. Experimental results demonstrate that Ouroboros achieves 4.1 × 4.1\times average throughput improvement and 4.2 × 4.2\times average energy efficiency gain over state-of-the-art systems, peaking at 9.1 × 9.1\times throughput and 17 × 17\times energy efficiency for the 13B model.">大型语言模型（ LLM ）推理需要巨大的内存容量和分层内存结构，但由于深度内存层之间频繁的数据移动，传统架构承受着过多的能量和延迟成本。为了解决这个问题，我们提出了一种基于晶圆级SRAM的内存计算（ CIM ）架构，可执行所有LLM</span>
+                <span class="summary-hint">🔍 hover查看英文原文</span>
+            </td>
+            <td class="kw-cell"><span class="kw-badge">Wafer-Scale Chips</span><span class="kw-badge">Computing-in-Memory</span><span class="kw-badge">Large Language Model</span><span class="kw-badge">Scheduling</span></td>
+            <td class="affil-cell">Yiqi Liu</td>
+            <td class="hot-cell">
+                <span class="hot-score">100</span>
+                <div class="hot-bar-bg"><div class="hot-bar" style="width:100%;background:#f97316"></div></div>
+                <div class="hot-badges"><span class="fire-badge">🔥×2</span></div>
+            </td>
+            <td class="date-cell">2026-03-03</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#2</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.01639v1" target="_blank" class="paper-title">Learning to Draft: Adaptive Speculative Decoding with Reinforcement Learning</a>
+            </td>
+            <td class="summary-cell">
+                <span class="summary-short" data-full="Speculative decoding accelerates large language model (LLM) inference by using a small draft model to generate candidate tokens for a larger target model to verify. The efficacy of this technique hinges on the trade-off between the time spent on drafting candidates and verifying them. However, current state-of-the-art methods rely on a static time allocation, while recent dynamic approaches optimize for proxy metrics like acceptance length, often neglecting the true time cost and treating the drafting and verification phases in isolation. To address these limitations, we introduce Learning to Draft (LTD), a novel method that directly optimizes for throughput of each draft-and-verify cycle. We formulate the problem as a reinforcement learning environment and train two co-adaptive policies to dynamically coordinate the draft and verification phases. This encourages the policies to adapt to each other and explicitly maximize decoding efficiency. We conducted extensive evaluations on five diverse LLMs and four distinct tasks. Our results show that LTD achieves speedup ratios ranging from 2.24 × \times to 4.32 × \times , outperforming the state-of-the-art method Eagle3 up to 36.4%.">推测解码通过使用小草图模型为更大的目标模型生成候选令牌来加速大语言模型（ LLM ）推理，以进行验证。这种技巧的有效性取决于起草候选人和验证候选人所花费的时间之间的权衡。</span>
+                <span class="summary-hint">🔍 hover查看英文原文</span>
+            </td>
+            <td class="kw-cell"><span class="kw-badge">Reinforcement Learning</span><span class="kw-badge">Speculative Decoding</span><span class="kw-badge">Verification</span><span class="kw-badge">Large Language Model</span><span class="kw-badge">Inference</span></td>
+            <td class="affil-cell">Jiebin Zhang</td>
+            <td class="hot-cell">
+                <span class="hot-score">84</span>
+                <div class="hot-bar-bg"><div class="hot-bar" style="width:84%;background:#f97316"></div></div>
+                <div class="hot-badges"><span class="fire-badge">🔥×2</span></div>
+            </td>
+            <td class="date-cell">2026-03-02</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#3</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.01499v1" target="_blank" class="paper-title">Towards Privacy-Preserving LLM Inference via Collaborative Obfuscation (Technical Report)</a>
+            </td>
+            <td class="summary-cell">
+                <span class="summary-short" data-full="The rapid development of large language models (LLMs) has driven the widespread adoption of cloud-based LLM inference services, while also bringing prominent privacy risks associated with the transmission and processing of private data in remote inference. For privacy-preserving LLM inference technologies to be practically applied in industrial scenarios, three core requirements must be satisfied simultaneously: (1) Accuracy and efficiency losses should be minimized to mitigate degradation in service experience. (2) The inference process can be run on large-scale clusters consist of heterogeneous legacy xPUs. (3) Compatibility with existing LLM infrastructures should be ensured to reuse their engineering optimizations. To the best of our knowledge, none of the existing privacy-preserving LLM inference methods satisfy all the above three constraints while delivering meaningful privacy guarantees. In this paper, we propose AloePri , the first privacy-preserving LLM inference method for industrial applications. AloePri protects both the input and output data by covariant obfuscation, which jointly transforms data and model parameters to achieve better accuracy and privacy. We carefully design the transformation for each model component (e.g., Attention, FFN) to ensure inference accuracy and data privacy while keeping full compatibility with existing infrastructures of Language Model as a Service (LMaaS). AloePri has been integrated into an industrial LMaaS system deployed on a multi-node GPU cluster for the evaluation of mainstream LLMs. The evaluation on Deepseek-V3.1-Terminus model (671B parameters) demonstrates that AloePri causes accuracy loss of 0.0 % ∼ 3.5 % 0.0\%\sim 3.5\% and exhibits efficiency equivalent to that of plaintext inference. Meanwhile, AloePri successfully resists state-of-the-art attacks (e.g., internal state inversion), with less than 5% of tokens recovered. To the best of our knowledge, AloePri is the first method to exhibit practical applicability to large-scale models in real-world systems.">大型语言模型（ LLM ）的快速发展推动了基于云的LLM推理服务的广泛采用，同时也带来了与远程推理中私有数据的传输和处理相关的突出隐私风险。将隐私保护法学硕士推理技术应用于工业领域</span>
+                <span class="summary-hint">🔍 hover查看英文原文</span>
+            </td>
+            <td class="kw-cell"><span class="kw-badge">Inference</span><span class="kw-badge">LLM</span><span class="kw-badge">Obfuscation</span><span class="kw-badge">Compatibility</span><span class="kw-badge">Large Language Model</span></td>
+            <td class="affil-cell">DeepSeek</td>
+            <td class="hot-cell">
+                <span class="hot-score">84</span>
+                <div class="hot-bar-bg"><div class="hot-bar" style="width:84%;background:#f97316"></div></div>
+                <div class="hot-badges"><span class="fire-badge">🔥×2</span></div>
+            </td>
+            <td class="date-cell">2026-03-02</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#4</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.02949v1" target="_blank" class="paper-title">SEALing the Gap: A Reference Framework for LLM Inference Carbon Estimation via Multi-Benchmark Driven Embodiment</a>
+            </td>
+            <td class="summary-cell">
+                <span class="summary-short" data-full="Large Language Models (LLMs) are rapidly gaining traction in software engineering, yet their growing carbon footprint raises pressing sustainability concerns. While training emissions are substantial, inference quickly surpasses them due to the sheer volume of prompts processed. This shift underscores the urgent need for accurate, prompt-level carbon measurement during inference to enable informed, sustainability-focused decision-making. To address the limitations of existing approaches, in this paper, we outline the guiding principles for a novel reference framework for LLM inference carbon estimation that can guide the design of future tools and provide a systematic foundation for advancing sustainability research in this domain. We also introduce SEAL , an early embodiment of these principles that leverages a multi-benchmark-driven approach for per-prompt carbon estimation. Its initial validation shows promising results, positioning SEAL as a foundation for standardized sustainability assessment across the LLM ecosystem.">大型语言模型（ LLM ）在软件工程领域迅速发展，但其不断增长的碳足迹引发了紧迫的可持续性问题。虽然培训排放量很大，但由于处理的提示数量庞大，推理很快就超过了它们。</span>
+                <span class="summary-hint">🔍 hover查看英文原文</span>
+            </td>
+            <td class="kw-cell"><span class="kw-badge">Green Software</span><span class="kw-badge">Energy Modeling</span><span class="kw-badge">LLM Benchmarks</span></td>
+            <td class="affil-cell">Priyavanshi Pathania</td>
+            <td class="hot-cell">
+                <span class="hot-score">81</span>
+                <div class="hot-bar-bg"><div class="hot-bar" style="width:81%;background:#f97316"></div></div>
+                <div class="hot-badges"></div>
+            </td>
+            <td class="date-cell">2026-03-03</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#5</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.02772v1" target="_blank" class="paper-title">Agentic Self-Evolutionary Replanning for Embodied Navigation</a>
+            </td>
+            <td class="summary-cell">
+                <span class="summary-short" data-full="Failure is inevitable for embodied navigation in complex environments. To enhance the resilience, replanning (RP) is a viable option, where the robot is allowed to fail, but is capable of adjusting plan until success. However, existing RP approaches freeze the ego action model and miss the opportunities to explore better plans by upgrading the robot itself. To address this limitation, we propose Self-Evolutionary RePlanning, or SERP for short, which leads to a paradigm shift from frozen models towards evolving models by run-time learning from recent experiences. In contrast to existing model evolution approaches that often get stuck at predefined static parameters, we introduce agentic self-evolving action model that uses in-context learning with auto-differentiation (ILAD) for adaptive function adjustment and global parameter reset. To achieve token-efficient replanning for SERP, we also propose graph chain-of-thought (GCOT) replanning with large language model (LLM) inference over distilled graphs. Extensive simulation and real-world experiments demonstrate that SERP achieves higher success rate with lower token expenditure over various benchmarks, validating its superior robustness and efficiency across diverse environments.">MYMEMORY WARNING: YOU USED ALL AVAILABLE FREE TRANSLATIONS FOR TODAY. NEXT AVAILABLE IN  18 HOURS 54 MINUTES 43 SECONDS VISIT HTTPS://MYMEMORY.TRANSLATED.NET/DOC/USAGELIMITS.PHP TO TRANSLATE MORE</span>
+                <span class="summary-hint">🔍 hover查看英文原文</span>
+            </td>
+            <td class="kw-cell"><span class="kw-badge">Navigation</span><span class="kw-badge">Action</span><span class="kw-badge">Large Language Model</span><span class="kw-badge">In-Context Learning</span><span class="kw-badge">Chain-of-Thought</span></td>
+            <td class="affil-cell">Guoliang Li</td>
+            <td class="hot-cell">
+                <span class="hot-score">81</span>
+                <div class="hot-bar-bg"><div class="hot-bar" style="width:81%;background:#f97316"></div></div>
+                <div class="hot-badges"></div>
+            </td>
+            <td class="date-cell">2026-03-03</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#6</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.02631v1" target="_blank" class="paper-title">Cross-Family Speculative Prefill: Training-Free Long-Context Compression with Small Draft Models</a>
+            </td>
+            <td class="summary-cell">
+                <span class="summary-short" data-full="Prompt length is a major bottleneck in agentic large language model (LLM) workloads, where repeated inference steps and multi-call loops incur substantial prefill cost. Recent work on speculative prefill demonstrates that attention based token importance estimation can enable training-free prompt compression, but this assumes the existence of a draft model that shares the same tokenizer as the target model. In practice however, agentic pipelines frequently employ models without any smaller in-family draft model. In this work, we study cross-family speculative prefill, where a lightweight draft model from one model family is used to perform prompt compression for a target model from a different family. Using the same speculative prefill mechanism as prior work, we evaluate a range of cross-family draft–target combinations, including Qwen, LLaMA, and DeepSeek models. Across a broad diversity of tasks, we find that attention-based token importance estimation transfers reliably across different model families despite differences in model architectures and tokenizers between draft and target models. Cross-model prompt compression largely retains 90–100% of full-prompt baseline performance and, in some cases, slightly improves accuracy due to denoising effects, while delivering substantial reductions in time-to-first-token (TTFT). These results suggest that speculative prefill depends mainly on task priors and semantic structure, thus serving as a generalizable prompt compression primitive. We discuss the implications of our findings for agentic systems, where repeated long-context inference and heterogeneous model stacks make cross-model prompt compression both necessary and practical.">提示长度是代理大型语言模型（ LLM ）工作负载的主要瓶颈，其中重复推断步骤和多呼叫循环会产生大量的预填充成本。最近关于推测性预填充的工作表明，基于注意力的令牌重要性估计可以实现无训练的提示压缩，但这假设存在DRA</span>
+                <span class="summary-hint">🔍 hover查看英文原文</span>
+            </td>
+            <td class="kw-cell"><span class="kw-badge">Inference</span><span class="kw-badge">Attention</span><span class="kw-badge">Estimation</span><span class="kw-badge">Large Language Model</span><span class="kw-badge">Existence</span></td>
+            <td class="affil-cell">DeepSeek</td>
+            <td class="hot-cell">
+                <span class="hot-score">81</span>
+                <div class="hot-bar-bg"><div class="hot-bar" style="width:81%;background:#f97316"></div></div>
+                <div class="hot-badges"></div>
+            </td>
+            <td class="date-cell">2026-03-03</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#7</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.02615v1" target="_blank" class="paper-title">Think, But Don't Overthink: Reproducing Recursive Language Models</a>
+            </td>
+            <td class="summary-cell">
+                <span class="summary-short" data-full="This project reproduces and extends the recently proposed “Recursive Language Models” (RLMs) framework by Zhang et al. (2026). This framework enables Large Language Models (LLMs) to process near-infinite contexts by offloading the prompt into an external REPL environment. While the original paper relies on a default recursion depth of 1 and suggests deeper recursion as a future direction, this study specifically investigates the impact of scaling the recursion depth. Using state-of-the-art open-source agentic models (DeepSeek v3.2 and Kimi K2), I evaluated pure LLM, RLM (depth=1), and RLM (depth=2) on the S-NIAH and OOLONG benchmarks. The findings reveal a compelling phenomenon: Deeper recursion causes models to “overthink”. While depth-1 RLMs effectively boost accuracy on complex reasoning tasks, applying deeper recursion (depth=2) or using RLMs on simple retrieval tasks paradoxically degrades performance and exponentially inflates execution time (e.g., from 3.6s to 344.5s) and token costs. Code and data are available at: https://github.com/drbillwang/rlm-reproduction">本项目复制并扩展了Zhang等人（ 2026 ）最近提出的“递归语言模型” （ RLM ）框架。</span>
+                <span class="summary-hint">🔍 hover查看英文原文</span>
+            </td>
+            <td class="kw-cell"><span class="kw-badge">Framework</span><span class="kw-badge">Large Language Model</span><span class="kw-badge">Environment</span><span class="kw-badge">Future</span><span class="kw-badge">Direction</span></td>
+            <td class="affil-cell">DeepSeek</td>
+            <td class="hot-cell">
+                <span class="hot-score">81</span>
+                <div class="hot-bar-bg"><div class="hot-bar" style="width:81%;background:#f97316"></div></div>
+                <div class="hot-badges"></div>
+            </td>
+            <td class="date-cell">2026-03-03</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#8</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.02510v1" target="_blank" class="paper-title">ParEVO: Synthesizing Code for Irregular Data: High-Performance Parallelism through Agentic Evolution</a>
+            </td>
+            <td class="summary-cell">
+                <span class="summary-short" data-full="The transition from sequential to parallel computing is essential for modern high-performance applications but is hindered by the steep learning curve of concurrent programming. This challenge is magnified for irregular data structures (such as sparse graphs, unbalanced trees, and non-uniform meshes) where static scheduling fails and data dependencies are unpredictable. Current Large Language Models (LLMs) often fail catastrophically on these tasks, generating code plagued by subtle race conditions, deadlocks, and sub-optimal scaling.   We bridge this gap with ParEVO, a framework designed to synthesize high-performance parallel algorithms for irregular data. Our contributions include: (1) The Parlay-Instruct Corpus, a curated dataset of 13,820 tasks synthesized via a &quot;Critic-Refine&quot; pipeline that explicitly filters for empirically performant algorithms that effectively utilize Work-Span parallel primitives; (2) specialized DeepSeek, Qwen, and Gemini models fine-tuned to align probabilistic generation with the rigorous semantics of the ParlayLib library; and (3) an Evolutionary Coding Agent (ECA) that improves the &quot;last mile&quot; of correctness by iteratively repairing code using feedback from compilers, dynamic race detectors, and performance profilers.   On the ParEval benchmark, ParEVO achieves an average 106x speedup (with a maximum of 1103x) across the suite, and a robust 13.6x speedup specifically on complex irregular graph problems, outperforming state-of-the-art commercial models. Furthermore, our evolutionary approach matches state-of-the-art expert human baselines, achieving up to a 4.1x speedup on specific highly-irregular kernels. Source code and datasets are available at https://github.com/WildAlg/ParEVO.">从顺序计算到并行计算的转变对于现代高性能应用至关重要，但受到并发编程陡峭的学习曲线的阻碍。对于静态调度失败和数据依赖的不规则数据结构（例如稀疏图、不平衡树和非均匀网格） ，这种挑战会被放大</span>
+                <span class="summary-hint">🔍 hover查看英文原文</span>
+            </td>
+            <td class="kw-cell"><span class="kw-badge">ParEVO</span><span class="kw-badge">Large Language Model</span><span class="kw-badge">Transition</span><span class="kw-badge">Framework</span><span class="kw-badge">Correctness</span></td>
+            <td class="affil-cell">DeepSeek</td>
+            <td class="hot-cell">
+                <span class="hot-score">81</span>
+                <div class="hot-bar-bg"><div class="hot-bar" style="width:81%;background:#f97316"></div></div>
+                <div class="hot-badges"></div>
+            </td>
+            <td class="date-cell">2026-03-03</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#9</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.02872v1" target="_blank" class="paper-title">Think-as-You-See: Streaming Chain-of-Thought Reasoning for Large Vision-Language Models</a>
+            </td>
+            <td class="summary-cell">
+                <span class="summary-short" data-full="Large Vision Language Models (LVLMs) exhibit strong Chain-of-Thought (CoT) capabilities, yet most existing paradigms assume full-video availability before inference, a batch-style process misaligned with real-world video streams where information arrives sequentially. Motivated by the streaming nature of video data, we investigate two streaming reasoning paradigms for LVLMs. The first, an interleaved paradigm, alternates between receiving frames and producing partial reasoning but remains constrained by strictly ordered cache updates. To better match streaming inputs, we propose Think-as-You-See (TaYS) , a unified framework enabling true concurrent reasoning. TaYS integrates parallelized CoT generation, stream-constrained training, and stream-parallel inference. It further employs temporally aligned reasoning units, streaming attention masks and positional encodings, and a dual KV-cache that decouples visual encoding from textual reasoning. We evaluate all paradigms on the Qwen2.5-VL family across representative video CoT tasks, including event dynamics analysis, causal reasoning, and thematic understanding. Experiments show that TaYS consistently outperforms both batch and interleaved baselines, improving reasoning performance while substantially reducing time-to-first-token (TTFT) and overall reasoning delay. These results demonstrate the effectiveness of data-aligned streaming reasoning in enabling efficient and responsive video understanding for LVLMs. We release our code at this repository.">大视觉语言模型（ LVLM ）表现出强大的思维链（ CoT ）能力，但大多数现有范式都假设在推理之前有完整的视频可用性，这是一种与信息顺序到达的现实世界视频流不一致的批量式流程。受视频数据的流媒体性质的激励，我们调查了两个流媒体领域</span>
+                <span class="summary-hint">🔍 hover查看英文原文</span>
+            </td>
+            <td class="kw-cell"><span class="kw-badge">Chain-of-Thought</span><span class="kw-badge">Inference</span><span class="kw-badge">Vision-Language Model</span><span class="kw-badge">Information</span><span class="kw-badge">Nature</span></td>
+            <td class="affil-cell">Jialiang Zhang</td>
+            <td class="hot-cell">
+                <span class="hot-score">81</span>
+                <div class="hot-bar-bg"><div class="hot-bar" style="width:81%;background:#f97316"></div></div>
+                <div class="hot-badges"></div>
+            </td>
+            <td class="date-cell">2026-03-03</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#10</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.03251v1" target="_blank" class="paper-title">Speculative Speculative Decoding</a>
+            </td>
+            <td class="summary-cell">
+                <span class="summary-short" data-full="Autoregressive decoding is bottlenecked by its sequential nature. Speculative decoding has become a standard way to accelerate inference by using a fast draft model to predict upcoming tokens from a slower target model, and then verifying them in parallel with a single target model forward pass. However, speculative decoding itself relies on a sequential dependence between speculation and verification. We introduce speculative speculative decoding (SSD) to parallelize these operations. While a verification is ongoing, the draft model predicts likely verification outcomes and prepares speculations pre-emptively for them. If the actual verification outcome is then in the predicted set, a speculation can be returned immediately, eliminating drafting overhead entirely. We identify three key challenges presented by speculative speculative decoding, and suggest principled methods to solve each. The result is Saguaro , an optimized SSD algorithm. Our implementation is up to 2x faster than optimized speculative decoding baselines and up to 5x faster than autoregressive decoding with open source inference engines.">自回归解码因其顺序性质而受到瓶颈。投机解码已成为加速推理的标准方法，通过使用快速草案模型从较慢的目标模型预测即将到来的代币，然后与单个目标模型正向传递并行验证它们。</span>
+                <span class="summary-hint">🔍 hover查看英文原文</span>
+            </td>
+            <td class="kw-cell"><span class="kw-badge">Speculative Decoding</span><span class="kw-badge">Verification</span><span class="kw-badge">Inference</span><span class="kw-badge">Speculation</span><span class="kw-badge">Nature</span></td>
+            <td class="affil-cell">Tanishq Kumar</td>
+            <td class="hot-cell">
+                <span class="hot-score">81</span>
+                <div class="hot-bar-bg"><div class="hot-bar" style="width:81%;background:#f97316"></div></div>
+                <div class="hot-badges"></div>
+            </td>
+            <td class="date-cell">2026-03-03</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  
+  <p class="section-title">☁️ 论文关键词词云（来自论文 Keywords 字段）</p>
+  <div class="wordcloud-wrap">
+    <div id="wordcloud-chart" style="width:100%;height:380px;"></div>
+  </div>
+
+
+  <p class="section-title">📋 所有采集论文列表</p>
+  <details class="all-papers-wrap">
+    <summary>点击展开 · 共 34 篇论文</summary>
+    <table class="all-papers-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>标题</th>
+          <th>发布日期</th>
+          <th>热度分</th>
+          <th>引用次数</th>
+          <th>影响力引用</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td><a href="http://arxiv.org/abs/2603.02737v1" target="_blank">Ouroboros: Wafer-Scale SRAM CIM with Token-Grained Pipelining for Large Language Model Inference</a></td><td>2026-03-03</td><td>100</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>2</td><td><a href="http://arxiv.org/abs/2603.01639v1" target="_blank">Learning to Draft: Adaptive Speculative Decoding with Reinforcement Learning</a></td><td>2026-03-02</td><td>84</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>3</td><td><a href="http://arxiv.org/abs/2603.01499v1" target="_blank">Towards Privacy-Preserving LLM Inference via Collaborative Obfuscation (Technical Report)</a></td><td>2026-03-02</td><td>84</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>4</td><td><a href="http://arxiv.org/abs/2603.02949v1" target="_blank">SEALing the Gap: A Reference Framework for LLM Inference Carbon Estimation via Multi-Benchmark Driven Embodiment</a></td><td>2026-03-03</td><td>81</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>5</td><td><a href="http://arxiv.org/abs/2603.02772v1" target="_blank">Agentic Self-Evolutionary Replanning for Embodied Navigation</a></td><td>2026-03-03</td><td>81</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>6</td><td><a href="http://arxiv.org/abs/2603.02631v1" target="_blank">Cross-Family Speculative Prefill: Training-Free Long-Context Compression with Small Draft Models</a></td><td>2026-03-03</td><td>81</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>7</td><td><a href="http://arxiv.org/abs/2603.02615v1" target="_blank">Think, But Don't Overthink: Reproducing Recursive Language Models</a></td><td>2026-03-03</td><td>81</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>8</td><td><a href="http://arxiv.org/abs/2603.02510v1" target="_blank">ParEVO: Synthesizing Code for Irregular Data: High-Performance Parallelism through Agentic Evolution</a></td><td>2026-03-03</td><td>81</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>9</td><td><a href="http://arxiv.org/abs/2603.02872v1" target="_blank">Think-as-You-See: Streaming Chain-of-Thought Reasoning for Large Vision-Language Models</a></td><td>2026-03-03</td><td>81</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>10</td><td><a href="http://arxiv.org/abs/2603.03251v1" target="_blank">Speculative Speculative Decoding</a></td><td>2026-03-03</td><td>81</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>11</td><td><a href="http://arxiv.org/abs/2603.02057v1" target="_blank">Beyond Microservices: Testing Web-Scale RCA Methods on GPU-Driven LLM Workloads</a></td><td>2026-03-02</td><td>65</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>12</td><td><a href="http://arxiv.org/abs/2603.01486v1" target="_blank">Agentic Multi-Source Grounding for Enhanced Query Intent Understanding: A DoorDash Case Study</a></td><td>2026-03-02</td><td>65</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>13</td><td><a href="http://arxiv.org/abs/2603.01477v1" target="_blank">SFCo-Nav: Efficient Zero-Shot Visual Language Navigation via Collaboration of Slow LLM and Fast Attributed Graph Alignment</a></td><td>2026-03-02</td><td>65</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>14</td><td><a href="http://arxiv.org/abs/2603.01788v1" target="_blank">nchellwig at SemEval-2026 Task 3: Self-Consistent Structured Generation (SCSG) for Dimensional Aspect-Based Sentiment Analysis using Large Language Models</a></td><td>2026-03-02</td><td>65</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>15</td><td><a href="http://arxiv.org/abs/2603.01400v1" target="_blank">Token Reduction via Local and Global Contexts Optimization for Efficient Video Large Language Models</a></td><td>2026-03-02</td><td>65</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>16</td><td><a href="http://arxiv.org/abs/2603.01875v1" target="_blank">KDFlow: A User-Friendly and Efficient Knowledge Distillation Framework for Large Language Models</a></td><td>2026-03-02</td><td>65</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>17</td><td><a href="http://arxiv.org/abs/2603.02099v2" target="_blank">Recursive Think-Answer Process for LLMs and VLMs</a></td><td>2026-03-02</td><td>65</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>18</td><td><a href="http://arxiv.org/abs/2603.01840v1" target="_blank">FireRed-OCR Technical Report</a></td><td>2026-03-02</td><td>65</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>19</td><td><a href="http://arxiv.org/abs/2603.01814v1" target="_blank">Architecture-Aware Multi-Design Generation for Repository-Level Feature Addition</a></td><td>2026-03-02</td><td>65</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>20</td><td><a href="http://arxiv.org/abs/2603.01651v1" target="_blank">LexChronos: An Agentic Framework for Structured Event Timeline Extraction in Indian Jurisprudence</a></td><td>2026-03-02</td><td>65</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>21</td><td><a href="http://arxiv.org/abs/2603.02188v1" target="_blank">Multi-Head Low-Rank Attention</a></td><td>2026-03-02</td><td>65</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>22</td><td><a href="http://arxiv.org/abs/2603.01426v1" target="_blank">Understanding the Physics of Key-Value Cache Compression for LLMs through Attention Dynamics</a></td><td>2026-03-02</td><td>65</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>23</td><td><a href="http://arxiv.org/abs/2603.01581v1" target="_blank">KERV: Kinematic-Rectified Speculative Decoding for Embodied VLA Models</a></td><td>2026-03-02</td><td>65</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>24</td><td><a href="http://arxiv.org/abs/2603.01399v1" target="_blank">Quasar: Quantized Self-Speculative Acceleration for Rapid Inference via Memory-Efficient Verification</a></td><td>2026-03-02</td><td>65</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>25</td><td><a href="http://arxiv.org/abs/2603.01194v1" target="_blank">RnG: A Unified Transformer for Complete 3D Modeling from Partial Observations</a></td><td>2026-03-01</td><td>49</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>26</td><td><a href="http://arxiv.org/abs/2603.00907v1" target="_blank">KVSlimmer: Theoretical Insights and Practical Optimizations for Asymmetric KV Merging</a></td><td>2026-03-01</td><td>49</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>27</td><td><a href="http://arxiv.org/abs/2603.00356v1" target="_blank">Token Management in Multi-Tenant AI Inference Platforms</a></td><td>2026-02-27</td><td>35</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>28</td><td><a href="http://arxiv.org/abs/2603.00563v1" target="_blank">Whisper-MLA: Reducing GPU Memory Consumption of ASR Models based on MHA2MLA Conversion</a></td><td>2026-02-28</td><td>32</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>29</td><td><a href="http://arxiv.org/abs/2602.23968v1" target="_blank">Learning Generation Orders for Masked Discrete Diffusion Models via Variational Inference</a></td><td>2026-02-27</td><td>16</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>30</td><td><a href="http://arxiv.org/abs/2603.00196v1" target="_blank">Your Inference Request Will Become a Black Box: Confidential Inference for Cloud-based Large Language Models</a></td><td>2026-02-27</td><td>16</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>31</td><td><a href="http://arxiv.org/abs/2602.24174v1" target="_blank">Task-Centric Acceleration of Small-Language Models</a></td><td>2026-02-27</td><td>16</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>32</td><td><a href="http://arxiv.org/abs/2602.23881v1" target="_blank">LK Losses: Direct Acceptance Rate Optimization for Speculative Decoding</a></td><td>2026-02-27</td><td>16</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>33</td><td><a href="http://arxiv.org/abs/2602.22593v2" target="_blank">FLYING SERVING: On-the-Fly Parallelism Switching for Large Language Model Serving</a></td><td>2026-02-26</td><td>0</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>34</td><td><a href="http://arxiv.org/abs/2602.23233v1" target="_blank">The Counterfactual Combine: A Causal Framework for Player Evaluation</a></td><td>2026-02-26</td><td>0</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+
+      </tbody>
+    </table>
+  </details>
+
+  <footer class="footer">
+    <span>热度评分 = 引用次数（40%）+ 影响力引用（20%）+ 时效性（30%）+ 跨分类命中（10%），归一化至 0-100 | 引用数据来源: Semantic Scholar</span>
+    <span>数据来源: <a href="https://arxiv.org" target="_blank">arXiv.org</a></span>
+  </footer>
+</div>
+
+<!-- ECharts + wordcloud -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts-wordcloud@2/dist/echarts-wordcloud.min.js"></script>
+<script>
+(function() {
+  // ---- ECharts 词云 ----
+  var chartDom = document.getElementById('wordcloud-chart');
+  if (chartDom) {
+    var myChart = echarts.init(chartDom, null, {renderer: 'canvas'});
+    var wcData = [{"name": "Large Language Model", "value": 300}, {"name": "Inference", "value": 240}, {"name": "Framework", "value": 135}, {"name": "Speculative Decoding", "value": 95}, {"name": "vLLM", "value": 80}, {"name": "SGLang", "value": 80}, {"name": "Attention", "value": 75}, {"name": "LLM", "value": 50}, {"name": "Verification", "value": 50}, {"name": "Reinforcement Learning", "value": 35}, {"name": "Balance", "value": 35}, {"name": "LLM inference", "value": 30}, {"name": "inference optimization", "value": 30}, {"name": "serving system", "value": 30}, {"name": "agentic inference", "value": 30}, {"name": "disaggregated inference", "value": 30}, {"name": "I/O bottleneck LLM", "value": 30}, {"name": "TensorRT-LLM", "value": 30}, {"name": "inference framework", "value": 30}, {"name": "storage bandwidth LLM", "value": 30}, {"name": "disaggregated LLM", "value": 30}, {"name": "DeepSeek", "value": 30}, {"name": "KV cache", "value": 30}, {"name": "attention cache", "value": 30}, {"name": "prefix cache", "value": 30}, {"name": "speculative decoding", "value": 30}, {"name": "quantization LLM", "value": 30}, {"name": "model compression inference", "value": 30}, {"name": "Navigation", "value": 30}, {"name": "Chain-of-Thought", "value": 30}, {"name": "LoRA", "value": 30}, {"name": "Confidence", "value": 30}, {"name": "Inference Efficiency", "value": 30}, {"name": "Architecture", "value": 30}, {"name": "Tensor Parallelism", "value": 30}, {"name": "KV Cache", "value": 30}, {"name": "Structure", "value": 30}, {"name": "Nature", "value": 30}, {"name": "Acceptance", "value": 30}, {"name": "Wafer-Scale Chips", "value": 20}, {"name": "Computing-in-Memory", "value": 20}, {"name": "Scheduling", "value": 20}, {"name": "Obfuscation", "value": 20}, {"name": "Compatibility", "value": 20}, {"name": "Capacity", "value": 20}, {"name": "Abstraction", "value": 20}, {"name": "Priority", "value": 20}, {"name": "Green Software", "value": 15}, {"name": "Energy Modeling", "value": 15}, {"name": "LLM Benchmarks", "value": 15}, {"name": "Action", "value": 15}, {"name": "In-Context Learning", "value": 15}, {"name": "RCA", "value": 15}, {"name": "GPU", "value": 15}, {"name": "Business", "value": 15}, {"name": "Disambiguation", "value": 15}, {"name": "Production", "value": 15}, {"name": "Foundation Model", "value": 15}, {"name": "Zero-Shot", "value": 15}, {"name": "Collaboration", "value": 15}];
+    myChart.setOption({
+      backgroundColor: '#161a23',
+      tooltip: {
+        show: true,
+        formatter: function(p) { return p.name + ': ' + p.value; }
+      },
+      series: [{
+        type: 'wordCloud',
+        shape: 'pentagon',
+        left: 'center',
+        top: 'center',
+        width: '95%',
+        height: '90%',
+        sizeRange: [14, 72],
+        rotationRange: [-45, 45],
+        rotationStep: 15,
+        gridSize: 8,
+        drawOutOfBound: false,
+        layoutAnimation: true,
+        textStyle: {
+          fontFamily: 'Space Grotesk, sans-serif',
+          fontWeight: 'bold',
+          color: function() {
+            var colors = [
+              '#4f8ef7','#a78bfa','#34d399','#f97316',
+              '#facc15','#38bdf8','#fb7185','#6ee7b7'
+            ];
+            return colors[Math.floor(Math.random() * colors.length)];
+          }
+        },
+        emphasis: {
+          focus: 'self',
+          textStyle: { shadowBlur: 10, shadowColor: '#4f8ef7' }
+        },
+        data: wcData
+      }]
+    });
+    window.addEventListener('resize', function() { myChart.resize(); });
+  }
+
+  // ---- Summary hover tooltip ----
+  var tooltip = document.getElementById('summary-tooltip');
+  var allShorts = document.querySelectorAll('.summary-short');
+  allShorts.forEach(function(el) {
+    el.addEventListener('mouseenter', function(e) {
+      var full = el.getAttribute('data-full');
+      if (!full) return;
+      tooltip.textContent = full;
+      tooltip.style.display = 'block';
+      positionTooltip(e);
+    });
+    el.addEventListener('mousemove', function(e) {
+      positionTooltip(e);
+    });
+    el.addEventListener('mouseleave', function() {
+      tooltip.style.display = 'none';
+    });
+  });
+
+  function positionTooltip(e) {
+    var x = e.clientX + 16;
+    var y = e.clientY + 16;
+    var tw = tooltip.offsetWidth || 420;
+    var th = tooltip.offsetHeight || 100;
+    if (x + tw > window.innerWidth - 10) x = e.clientX - tw - 10;
+    if (y + th > window.innerHeight - 10) y = e.clientY - th - 10;
+    tooltip.style.left = x + 'px';
+    tooltip.style.top = y + 'px';
+  }
+})();
+</script>
+</body>
+</html>
