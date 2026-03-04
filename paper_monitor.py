@@ -883,21 +883,24 @@ def fetch_semantic_scholar_metrics(paper_ids: list) -> dict:
 
 
 def compute_hotness(paper: dict, hit_count: int, ss_metrics: dict = None,
-                    hf_metrics: dict = None, arxiv_version: int = 1) -> float:
+                    hf_metrics: dict = None, arxiv_version: int = 1,
+                    github_repo: str = "", github_stars: int = 0) -> float:
     """
     计算论文热度分数（越高越热门）。
 
     评分维度（满分 100 分）：
-    - 引用次数 citationCount          30分：log 归一化，1000引用约得满分
-    - 影响力引用 influentialCitations  15分：高质量引用信号
-    - 时效性分数                       25分：越新越高，7天线性衰减
+    - 引用次数 citationCount          25分：log 归一化，1000引用约得满分
+    - 时效性分数                       20分：越新越高，7天线性衰减
     - HF 点赞数 upvotes               20分：社区热度，对新论文最有效
+    - GitHub/PWC 代码收录             25分：有代码基础5分 + star线性分最高20分
     - arXiv 版本数                    5分：v2/v3 说明有反馈修订
     - 跨分类命中 hit_count             5分：被多个主题搜到
 
-    ss_metrics: {"citationCount": int, "influentialCitationCount": int}，可为 None
-    hf_metrics: {"upvotes": int, "comments": int}，可为 None
+    ss_metrics: {"citationCount": int}，可为 None
+    hf_metrics: {"upvotes": int, "comments": int, "githubRepo": str}，可为 None
     arxiv_version: arXiv 版本号，默认 1
+    github_repo: GitHub 仓库 URL，有值则得基础5分
+    github_stars: GitHub Star 数，线性计算最高20分（10000 star 得满分）
     """
     import math
     from datetime import date
@@ -908,19 +911,13 @@ def compute_hotness(paper: dict, hit_count: int, ss_metrics: dict = None,
     if hf_metrics is None:
         hf_metrics = {}
 
-    # ── 1. 引用次数（30分）──
+    # ── 1. 引用次数（25分）──
     cite_count = ss_metrics.get("citationCount", 0) or 0
-    # log 归一化：log2(cite+1) / log2(1001) * 30，1000引用约得满分
-    cite_score = math.log2(cite_count + 1) / math.log2(1001) * 30.0
-    score += min(cite_score, 30.0)
+    # log 归一化：log2(cite+1) / log2(1001) * 25，1000引用约得满分
+    cite_score = math.log2(cite_count + 1) / math.log2(1001) * 25.0
+    score += min(cite_score, 25.0)
 
-    # ── 2. 影响力引用（15分）──
-    inf_cite = ss_metrics.get("influentialCitationCount", 0) or 0
-    # log 归一化：log2(inf+1) / log2(51) * 15，50个影响力引用约得满分
-    inf_score = math.log2(inf_cite + 1) / math.log2(51) * 15.0
-    score += min(inf_score, 15.0)
-
-    # ── 3. 时效性分数（25分）──
+    # ── 2. 时效性分数（20分）──
     try:
         pub = paper.get("published", "")  # 格式 MM-DD 或 YYYY-MM-DD
         today = date.today()
@@ -932,18 +929,30 @@ def compute_hotness(paper: dict, hit_count: int, ss_metrics: dict = None,
         else:
             pub_date = today
         days_ago = max((today - pub_date).days, 0)
-        # 7天内线性衰减：第0天=25分，第7天=0分
-        freshness = max(0.0, (7 - days_ago) / 7.0) * 25.0
+        # 7天内线性衰减：第0天=20分，第7天=0分
+        freshness = max(0.0, (7 - days_ago) / 7.0) * 20.0
         score += freshness
     except Exception:
-        score += 8.0  # 无法解析日期给默认分
+        score += 7.0  # 无法解析日期给默认分
 
-    # ── 4. HF 点赞数（20分）──
+    # ── 3. HF 点赞数（20分）──
     # 对新论文最有效：发布当天即可获得社区反馈
     # log 归一化：log2(upvotes+1) / log2(101) * 20，100个点赞约得满分
     upvotes = hf_metrics.get("upvotes", 0) or 0
     hf_score = math.log2(upvotes + 1) / math.log2(101) * 20.0
     score += min(hf_score, 20.0)
+
+    # ── 4. GitHub / Papers With Code 代码收录（25分）──
+    # 有代码基础分5分 + GitHub Star 线性分最高20分（10000 star 得满分）
+    # 优先使用传入的 github_repo，其次从 hf_metrics 中获取
+    repo = github_repo or hf_metrics.get("githubRepo", "") or ""
+    if repo:
+        stars = github_stars or 0
+        star_score = min(stars, 10000) / 10000.0 * 20.0
+        code_score = min(5.0 + star_score, 25.0)
+    else:
+        code_score = 0.0
+    score += code_score
 
     # ── 5. arXiv 版本数（5分）──
     # v1=0分，v2=3分，v3及以上=5分（有修订说明收到社区反馈）
@@ -955,7 +964,7 @@ def compute_hotness(paper: dict, hit_count: int, ss_metrics: dict = None,
         version_score = 0.0
     score += version_score
 
-    # ── 6. 跨分类命中（5分）──
+    # ── 7. 跨分类命中（5分）──
     # hit_count=1 得 2.5 分，hit_count>=2 得 5 分
     cross_score = min(hit_count * 2.5, 5.0)
     score += cross_score
@@ -978,8 +987,11 @@ def build_top10_table(all_papers: dict) -> str:
         metrics = ss_data.get(clean_id, {})
         hf_metrics = fetch_hf_paper_metrics(clean_id)
         arxiv_ver = get_arxiv_version(pid)
+        github_repo = hf_metrics.get("githubRepo", "") or ""
+        github_stars = hf_metrics.get("githubStars", 0) or 0
         score = compute_hotness(paper, hit_count, ss_metrics=metrics,
-                                hf_metrics=hf_metrics, arxiv_version=arxiv_ver)
+                                hf_metrics=hf_metrics, arxiv_version=arxiv_ver,
+                                github_repo=github_repo, github_stars=github_stars)
         scored.append((score, paper, hit_count, metrics, hf_metrics, arxiv_ver))
 
     scored.sort(key=lambda x: x[0], reverse=True)
@@ -1129,8 +1141,11 @@ def build_html_report(all_papers_map: dict, total_found: int) -> str:
         metrics = ss_data.get(clean_id, {})
         hf_metrics = fetch_hf_paper_metrics(clean_id)
         arxiv_ver = get_arxiv_version(pid)
+        github_repo = hf_metrics.get("githubRepo", "") or ""
+        github_stars = hf_metrics.get("githubStars", 0) or 0
         score = compute_hotness(paper, hit_count, ss_metrics=metrics,
-                                hf_metrics=hf_metrics, arxiv_version=arxiv_ver)
+                                hf_metrics=hf_metrics, arxiv_version=arxiv_ver,
+                                github_repo=github_repo, github_stars=github_stars)
         scored.append((score, paper, hit_count, metrics, hf_metrics, arxiv_ver))
     scored.sort(key=lambda x: x[0], reverse=True)
     top10 = scored[:10]
@@ -1940,7 +1955,7 @@ def build_html_report(all_papers_map: dict, total_found: int) -> str:
 <div class="container">
     <div class="header-left">
       <h1>📚 AI Infra &amp; 推理论文周报</h1>
-      <p class="subtitle">LLM Inference · KV Cache · AI Infrastructure · Speculative Decoding · vLLM · SGLang · DeepSeek · Qwen</p>
+      <p class="subtitle">vLLM · SGLang · DeepSeek · Qwen · LLM Inference · KV Cache · AI Infrastructure · Speculative Decoding</p>
     </div>
     <div class="header-right">
       <span class="meta-tag">📅 {now}</span>
@@ -2019,30 +2034,30 @@ def build_html_report(all_papers_map: dict, total_found: int) -> str:
       <div class="formula-box">
         <div class="formula-title">综合热度分（满分 100 分）</div>
         <div class="formula-expr">
-          热度分 = 引用次数分（30）+ 影响力引用分（15）+ 时效性分（25）+ HF点赞分（20）+ 版本分（5）+ 跨分类命中分（5）
+          热度分 = 引用次数分（25）+ 时效性分（20）+ HF点赞分（20）+ GitHub/PWC代码收录（25）+ 版本分（5）+ 跨分类命中分（5）
         </div>
-        <div class="formula-note">最终归一化至 0–100 分</div>
+        <div class="formula-note">理论上限恰好为 100 分，无需截断</div>
       </div>
       <div class="formula-dims">
         <div class="formula-dim">
           <span class="dim-name">📚 引用次数</span>
-          <span class="dim-weight">30 分</span>
-          <span class="dim-desc">来自 Semantic Scholar。log₂(引用数+1) / log₂(1001) × 30，约 1000 次引用得满分。对成熟论文最有效。</span>
-        </div>
-        <div class="formula-dim">
-          <span class="dim-name">⭐ 影响力引用</span>
-          <span class="dim-weight">15 分</span>
-          <span class="dim-desc">来自 Semantic Scholar influentialCitationCount。log₂(引用数+1) / log₂(51) × 15，约 50 次高影响力引用得满分。衡量论文质量而非数量。</span>
+          <span class="dim-weight">25 分</span>
+          <span class="dim-desc">来自 Semantic Scholar。log₂(引用数+1) / log₂(1001) × 25，约 1000 次引用得满分。对成熟论文最有效。</span>
         </div>
         <div class="formula-dim">
           <span class="dim-name">⏰ 时效性</span>
-          <span class="dim-weight">25 分</span>
-          <span class="dim-desc">发布当天得 25 分，7 天内线性衰减，超过 7 天得 0 分。确保新论文不会因无引用而被埋没。</span>
+          <span class="dim-weight">20 分</span>
+          <span class="dim-desc">发布当天得 20 分，7 天内线性衰减，超过 7 天得 0 分。确保新论文不会因无引用而被埋没。</span>
         </div>
         <div class="formula-dim">
           <span class="dim-name">👍 HF 点赞数</span>
           <span class="dim-weight">20 分</span>
           <span class="dim-desc">来自 Hugging Face Papers 社区点赞数。log₂(点赞数+1) / log₂(101) × 20，约 100 个点赞得满分。<strong>对新论文最有效</strong>，发布当天即可获得社区反馈。</span>
+        </div>
+        <div class="formula-dim">
+          <span class="dim-name">💻 GitHub / Papers With Code 代码收录</span>
+          <span class="dim-weight">25 分</span>
+          <span class="dim-desc">两个加权因子综合计算：<strong>① 有代码基础分 5 分</strong>（有仓库即得，无代码为 0）；<strong>② GitHub Star 线性分最高 20 分</strong>（star_score = min(stars, 10000) / 10000 × 20）。例：0 star=5分，3000 star≈11分，10000+ star=25分满分。</span>
         </div>
         <div class="formula-dim">
           <span class="dim-name">🔄 arXiv 版本数</span>
@@ -2058,14 +2073,15 @@ def build_html_report(all_papers_map: dict, total_found: int) -> str:
       <div class="formula-sources">
         数据来源：
         <a href="https://www.semanticscholar.org" target="_blank">Semantic Scholar</a>（引用数）·
-        <a href="https://huggingface.co/papers" target="_blank">Hugging Face Papers</a>（社区热度）·
-        <a href="https://arxiv.org" target="_blank">arXiv.org</a>（版本信息）
+        <a href="https://huggingface.co/papers" target="_blank">Hugging Face Papers</a>（社区热度 &amp; 代码仓库）·
+        <a href="https://arxiv.org" target="_blank">arXiv.org</a>（版本信息）·
+        <a href="https://paperswithcode.com" target="_blank">Papers With Code</a>（代码收录参考）
       </div>
     </div>
   </section>
 
   <footer class="footer">
-    <span>热度评分 = 引用次数（30%）+ 影响力引用（15%）+ 时效性（25%）+ HF点赞（20%）+ arXiv版本（5%）+ 跨分类命中（5%）</span>
+    <span>热度评分 = 引用次数（25）+ 时效性（20）+ HF点赞（20）+ GitHub/PWC代码（25）+ arXiv版本（5）+ 跨分类命中（5）= 满分100分</span>
     <span>数据来源: <a href="https://arxiv.org" target="_blank">arXiv.org</a></span>
   </footer>
 </div>
