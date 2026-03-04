@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Infra & 推理论文周报 · 2026-03-04 20:17</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #161a23;
+    --surface2: #1e2330;
+    --border: rgba(255,255,255,0.07);
+    --accent: #4f8ef7;
+    --accent2: #a78bfa;
+    --hot: #f97316;
+    --green: #34d399;
+    --text: #e2e8f0;
+    --text-muted: #64748b;
+    --text-dim: #94a3b8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    min-height: 100vh;
+    padding: 40px 20px 80px;
+  }
+
+  /* 背景装饰 */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 10%, rgba(79,142,247,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(167,139,250,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* 头部 */
+  .header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-left h1 {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .header-left .subtitle {
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .header-right {
+    text-align: right;
+  }
+
+  .meta-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-family: 'Space Mono', monospace;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    margin-left: 8px;
+  }
+
+  /* 统计卡片 */
+  .stats-bar {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  .stat-card {
+    flex: 1;
+    min-width: 140px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .stat-card .stat-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .stat-card .stat-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  /* 表格区域 */
+  .section-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+
+  thead tr {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  thead th {
+    padding: 14px 16px;
+    text-align: left;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .paper-row {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.2s;
+  }
+
+  .paper-row:last-child {
+    border-bottom: none;
+  }
+
+  .paper-row:hover {
+    background: rgba(79, 142, 247, 0.04);
+  }
+
+  td {
+    padding: 14px 16px;
+    vertical-align: top;
+  }
+
+  /* 排名列 */
+  .rank-cell {
+    width: 52px;
+    text-align: center;
+    padding-top: 16px;
+  }
+
+  .rank-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+
+  .paper-row:nth-child(1) .rank-num { color: #fbbf24; font-size: 1rem; }
+  .paper-row:nth-child(2) .rank-num { color: #94a3b8; font-size: 0.95rem; }
+  .paper-row:nth-child(3) .rank-num { color: #cd7c4a; font-size: 0.9rem; }
+
+  /* 标题列 */
+  .title-cell {
+    min-width: 260px;
+    max-width: 320px;
+  }
+
+  .paper-title {
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 500;
+    line-height: 1.4;
+    display: block;
+    transition: color 0.2s;
+  }
+
+  .paper-title:hover {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* 摘要列 */
+  .summary-cell {
+    min-width: 220px;
+    max-width: 300px;
+    color: var(--text-dim);
+    font-size: 0.83rem;
+    line-height: 1.6;
+  }
+
+  /* 关键字列 */
+  .kw-cell {
+    min-width: 160px;
+    max-width: 200px;
+  }
+
+  .kw-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    margin: 2px 3px 2px 0;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    background: rgba(79,142,247,0.1);
+    border: 1px solid rgba(79,142,247,0.2);
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  /* 机构列 */
+  .affil-cell {
+    min-width: 120px;
+    color: var(--text-dim);
+    font-size: 0.82rem;
+  }
+
+  /* 热度列 */
+  .hot-cell {
+    white-space: nowrap;
+    text-align: center;
+    min-width: 80px;
+  }
+
+  .hot-score {
+    font-family: 'Space Mono', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--hot);
+  }
+
+  .fire-badge {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--hot);
+    margin-top: 2px;
+  }
+
+  /* 日期列 */
+  .date-cell {
+    white-space: nowrap;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    min-width: 80px;
+  }
+
+  /* 底部 */
+  .footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .footer a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  @media (max-width: 768px) {
+    .header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .summary-cell, .kw-cell { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header class="header">
+    <div class="header-left">
+      <h1>📚 AI Infra &amp; 推理论文周报</h1>
+      <p class="subtitle">LLM Inference · KV Cache · AI Infrastructure · Speculative Decoding</p>
+    </div>
+    <div class="header-right">
+      <span class="meta-tag">📅 2026-03-04 20:17</span>
+      <span class="meta-tag">⏱ 最近7天</span>
+    </div>
+  </header>
+
+  <div class="stats-bar">
+    <div class="stat-card">
+      <span class="stat-label">发现论文</span>
+      <span class="stat-value">38</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">精选 Top</span>
+      <span class="stat-value">10</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">监控主题</span>
+      <span class="stat-value">5</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">热度最高</span>
+      <span class="stat-value" style="font-size:1.1rem;color:var(--hot)">32分</span>
+    </div>
+  </div>
+
+  <p class="section-title">🏆 本周热门论文 Top 10 — 综合热度排名</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>排名</th>
+          <th>标题</th>
+          <th>中文摘要</th>
+          <th>关键字</th>
+          <th>发布机构</th>
+          <th>热度分</th>
+          <th>发布日期</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#1</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.00356v1" target="_blank" class="paper-title">Token Management in Multi-Tenant AI Inference Platforms</a>
+            </td>
+            <td class="summary-cell">多租户AI推理平台必须平衡资源利用率与变量de下的服务水平保证</td>
+            <td class="kw-cell"><span class="kw-badge">inference</span><span class="kw-badge">token</span><span class="kw-badge">LLM</span><span class="kw-badge">serving</span><span class="kw-badge">KV cache</span></td>
+            <td class="affil-cell">FAIR</td>
+            <td class="hot-cell">
+                <span class="hot-score">32</span>
+                <span class="fire-badge">🔥×2</span>
+            </td>
+            <td class="date-cell">2026-02-27</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#2</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.02737v1" target="_blank" class="paper-title">Ouroboros: Wafer-Scale SRAM CIM with Token-Grained Pipelining for Large Language Model Inference</a>
+            </td>
+            <td class="summary-cell">传统的LLM推理架构由于数据在内存中频繁移动而受到高能量和延迟的影响</td>
+            <td class="kw-cell"><span class="kw-badge">inference</span><span class="kw-badge">token</span><span class="kw-badge">SRAM</span><span class="kw-badge">LLM</span><span class="kw-badge">KV cache</span></td>
+            <td class="affil-cell">Yiqi Liu</td>
+            <td class="hot-cell">
+                <span class="hot-score">30</span>
+                <span class="fire-badge">🔥×2</span>
+            </td>
+            <td class="date-cell">2026-03-03</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#3</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.01639v1" target="_blank" class="paper-title">Learning to Draft: Adaptive Speculative Decoding with Reinforcement Learning</a>
+            </td>
+            <td class="summary-cell">推测解码通过使用小草图模型生成候选项来加速大语言模型（ LLM ）推理</td>
+            <td class="kw-cell"><span class="kw-badge">speculative decoding</span><span class="kw-badge">reinforcement learning</span><span class="kw-badge">LLM</span><span class="kw-badge">inference</span><span class="kw-badge">throughput</span></td>
+            <td class="affil-cell">Jiebin Zhang</td>
+            <td class="hot-cell">
+                <span class="hot-score">28</span>
+                <span class="fire-badge">🔥×2</span>
+            </td>
+            <td class="date-cell">2026-03-02</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#4</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.01499v1" target="_blank" class="paper-title">Towards Privacy-Preserving LLM Inference via Collaborative Obfuscation (Technical Report)</a>
+            </td>
+            <td class="summary-cell">大型语言模型（ LLM ）的快速发展推动了基于云的LLM推理的广泛采用，</td>
+            <td class="kw-cell"><span class="kw-badge">LLM</span><span class="kw-badge">inference</span><span class="kw-badge">serving</span><span class="kw-badge">privacy</span><span class="kw-badge">token</span></td>
+            <td class="affil-cell">DeepSeek</td>
+            <td class="hot-cell">
+                <span class="hot-score">28</span>
+                <span class="fire-badge">🔥×2</span>
+            </td>
+            <td class="date-cell">2026-03-02</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#5</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2602.22593v2" target="_blank" class="paper-title">FLYING SERVING: On-the-Fly Parallelism Switching for Large Language Model Serving</a>
+            </td>
+            <td class="summary-cell">生产LLM服务必须同时提供高吞吐量、低延迟和足够的上下文容量</td>
+            <td class="kw-cell"><span class="kw-badge">serving</span><span class="kw-badge">parallelism</span><span class="kw-badge">LLM</span><span class="kw-badge">inference</span><span class="kw-badge">KV cache</span></td>
+            <td class="affil-cell">Shouwei Gao</td>
+            <td class="hot-cell">
+                <span class="hot-score">24</span>
+                
+            </td>
+            <td class="date-cell">2026-02-26</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#6</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.02631v1" target="_blank" class="paper-title">Cross-Family Speculative Prefill: Training-Free Long-Context Compression with Small Draft Models</a>
+            </td>
+            <td class="summary-cell">提示长度是代理大型语言模型（ LLM ）工作负载的主要瓶颈，其中重复推理步骤和</td>
+            <td class="kw-cell"><span class="kw-badge">prefill</span><span class="kw-badge">compression</span><span class="kw-badge">LLM</span><span class="kw-badge">inference</span><span class="kw-badge">serving</span></td>
+            <td class="affil-cell">DeepSeek</td>
+            <td class="hot-cell">
+                <span class="hot-score">24</span>
+                
+            </td>
+            <td class="date-cell">2026-03-03</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#7</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.01399v1" target="_blank" class="paper-title">Quasar: Quantized Self-Speculative Acceleration for Rapid Inference via Memory-Efficient Verification</a>
+            </td>
+            <td class="summary-cell">推测解码（ SD ）已成为加速大型语言模型（ LLM ）推理的首要技术，</td>
+            <td class="kw-cell"><span class="kw-badge">inference</span><span class="kw-badge">memory</span><span class="kw-badge">LLM</span><span class="kw-badge">speculative decoding</span><span class="kw-badge">quantization</span></td>
+            <td class="affil-cell">Guang Huang</td>
+            <td class="hot-cell">
+                <span class="hot-score">22</span>
+                
+            </td>
+            <td class="date-cell">2026-03-02</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#8</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.02188v1" target="_blank" class="paper-title">Multi-Head Low-Rank Attention</a>
+            </td>
+            <td class="summary-cell">大型语言模型中的长上下文推理受到解码过程中Key-Value (KV)缓存加载的瓶颈</td>
+            <td class="kw-cell"><span class="kw-badge">attention</span><span class="kw-badge">multi-head</span><span class="kw-badge">low-rank</span><span class="kw-badge">inference</span><span class="kw-badge">KV cache</span></td>
+            <td class="affil-cell">Songtao Liu</td>
+            <td class="hot-cell">
+                <span class="hot-score">20</span>
+                
+            </td>
+            <td class="date-cell">2026-03-02</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#9</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.00196v1" target="_blank" class="paper-title">Your Inference Request Will Become a Black Box: Confidential Inference for Cloud-based Large Language Models</a>
+            </td>
+            <td class="summary-cell">对云托管的大型语言模型(LLM)的日益依赖暴露了敏感的客户数据，例如提示和</td>
+            <td class="kw-cell"><span class="kw-badge">inference</span><span class="kw-badge">confidential</span><span class="kw-badge">LLM</span><span class="kw-badge">serving</span><span class="kw-badge">GPU</span></td>
+            <td class="affil-cell">Chung-ju Huang</td>
+            <td class="hot-cell">
+                <span class="hot-score">19</span>
+                
+            </td>
+            <td class="date-cell">2026-02-27</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#10</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.00563v1" target="_blank" class="paper-title">Whisper-MLA: Reducing GPU Memory Consumption of ASR Models based on MHA2MLA Conversion</a>
+            </td>
+            <td class="summary-cell">基于变压器的Whisper模型在自动语音识别（ ASR ）方面实现了最先进的性能。如何</td>
+            <td class="kw-cell"><span class="kw-badge">GPU</span><span class="kw-badge">memory</span><span class="kw-badge">ASR</span><span class="kw-badge">KV cache</span><span class="kw-badge">attention</span></td>
+            <td class="affil-cell">Sen Zhang</td>
+            <td class="hot-cell">
+                <span class="hot-score">19</span>
+                
+            </td>
+            <td class="date-cell">2026-02-28</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer class="footer">
+    <span>热度评分 = 跨分类命中 × 10 + 关键词密度 × 1.5 + 时效加分</span>
+    <span>数据来源: <a href="https://arxiv.org" target="_blank">arXiv.org</a></span>
+  </footer>
+</div>
+</body>
+</html>
