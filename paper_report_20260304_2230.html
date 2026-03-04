@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Infra & 推理论文周报 · 2026-03-04 22:30</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #161a23;
+    --surface2: #1e2330;
+    --border: rgba(255,255,255,0.07);
+    --accent: #4f8ef7;
+    --accent2: #a78bfa;
+    --hot: #f97316;
+    --green: #34d399;
+    --text: #e2e8f0;
+    --text-muted: #64748b;
+    --text-dim: #94a3b8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    min-height: 100vh;
+    padding: 40px 20px 80px;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 10%, rgba(79,142,247,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(167,139,250,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-left h1 {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .header-left .subtitle {
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .header-right { text-align: right; }
+
+  .meta-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-family: 'Space Mono', monospace;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    margin-left: 8px;
+  }
+
+  .stats-bar {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  .stat-card {
+    flex: 1;
+    min-width: 140px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .stat-card .stat-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .stat-card .stat-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .section-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    margin-bottom: 40px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+
+  thead tr {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  thead th {
+    padding: 14px 16px;
+    text-align: left;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .paper-row {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.2s;
+  }
+
+  .paper-row:last-child { border-bottom: none; }
+  .paper-row:hover { background: rgba(79, 142, 247, 0.04); }
+
+  td {
+    padding: 14px 16px;
+    vertical-align: top;
+  }
+
+  .rank-cell {
+    width: 52px;
+    text-align: center;
+    padding-top: 16px;
+  }
+
+  .rank-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+
+  .paper-row:nth-child(1) .rank-num { color: #fbbf24; font-size: 1rem; }
+  .paper-row:nth-child(2) .rank-num { color: #94a3b8; font-size: 0.95rem; }
+  .paper-row:nth-child(3) .rank-num { color: #cd7c4a; font-size: 0.9rem; }
+
+  .title-cell {
+    min-width: 240px;
+    max-width: 300px;
+  }
+
+  .paper-title {
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 500;
+    line-height: 1.4;
+    display: block;
+    transition: color 0.2s;
+  }
+
+  .paper-title:hover {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* 摘要 hover tooltip */
+  .summary-cell {
+    min-width: 220px;
+    max-width: 300px;
+    color: var(--text-dim);
+    font-size: 0.83rem;
+    line-height: 1.7;
+    position: relative;
+  }
+
+  .summary-short {
+    cursor: help;
+    border-bottom: 1px dashed rgba(100,116,139,0.4);
+    display: inline;
+  }
+
+  .summary-hint {
+    display: block;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+    opacity: 0.7;
+  }
+
+  /* 自定义 tooltip 浮层 */
+  #summary-tooltip {
+    position: fixed;
+    z-index: 9999;
+    max-width: 420px;
+    background: #1e2330;
+    border: 1px solid rgba(79,142,247,0.3);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    pointer-events: none;
+    display: none;
+    word-break: break-word;
+  }
+
+  /* 搜索关键词展示区域 */
+  .search-kw-wrap {
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 16px 20px;
+    margin-bottom: 28px;
+  }
+  .search-kw-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .search-kw-row:last-child {
+    border-bottom: none;
+  }
+  .search-kw-topic {
+    flex-shrink: 0;
+    min-width: 120px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--accent);
+    padding-top: 3px;
+  }
+  .search-kw-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .search-kw-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: rgba(79,142,247,0.12);
+    border: 1px solid rgba(79,142,247,0.3);
+    color: #a0c4ff;
+    white-space: nowrap;
+  }
+
+  /* 词云 */
+  .wordcloud-wrap {
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    overflow: hidden;
+    margin-bottom: 40px;
+    padding: 8px;
+  }
+
+  .kw-cell {
+    min-width: 160px;
+    max-width: 200px;
+  }
+
+  .kw-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    margin: 2px 3px 2px 0;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    background: rgba(79,142,247,0.1);
+    border: 1px solid rgba(79,142,247,0.2);
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .affil-cell {
+    min-width: 100px;
+    color: var(--text-dim);
+    font-size: 0.82rem;
+  }
+
+  .hot-cell {
+    white-space: nowrap;
+    text-align: center;
+    min-width: 110px;
+  }
+
+  .hot-score {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--hot);
+  }
+
+  .hot-bar-bg {
+    width: 70px;
+    height: 4px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    margin: 4px auto 2px;
+    overflow: hidden;
+  }
+
+  .hot-bar {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  .hot-badges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 3px;
+    margin-top: 3px;
+  }
+
+  .fire-badge {
+    display: inline-block;
+    font-size: 0.68rem;
+    color: var(--hot);
+  }
+
+  .cite-badge {
+    display: inline-block;
+    font-size: 0.66rem;
+    color: #60a5fa;
+    background: rgba(96,165,250,0.12);
+    border-radius: 4px;
+    padding: 1px 5px;
+    cursor: default;
+  }
+
+  .inf-cite-badge {
+    display: inline-block;
+    font-size: 0.66rem;
+    color: #fbbf24;
+    background: rgba(251,191,36,0.12);
+    border-radius: 4px;
+    padding: 1px 5px;
+    cursor: default;
+  }
+
+  .hf-badge {
+    display: inline-block;
+    font-size: 0.66rem;
+    color: #34d399;
+    background: rgba(52,211,153,0.12);
+    border-radius: 4px;
+    padding: 1px 5px;
+    cursor: default;
+  }
+
+  .ver-badge {
+    display: inline-block;
+    font-size: 0.64rem;
+    color: #facc15;
+    background: rgba(250,204,21,0.1);
+    border-radius: 4px;
+    padding: 1px 5px;
+    cursor: default;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .date-cell {
+    white-space: nowrap;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    min-width: 80px;
+  }
+
+  /* 搜索关键词展示区域 */
+  .search-kw-wrap {
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 16px 20px;
+    margin-bottom: 28px;
+  }
+  .search-kw-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .search-kw-row:last-child {
+    border-bottom: none;
+  }
+  .search-kw-topic {
+    flex-shrink: 0;
+    min-width: 120px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--accent);
+    padding-top: 3px;
+  }
+  .search-kw-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .search-kw-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: rgba(79,142,247,0.12);
+    border: 1px solid rgba(79,142,247,0.3);
+    color: #a0c4ff;
+    white-space: nowrap;
+  }
+
+  /* 词云 */
+  .wordcloud-wrap {
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    overflow: hidden;
+    margin-bottom: 40px;
+    text-align: center;
+    padding: 8px;
+  }
+
+  .kw-cell {
+    min-width: 160px;
+    max-width: 200px;
+  }
+  .all-papers-wrap {
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    overflow: hidden;
+    margin-bottom: 40px;
+  }
+
+  .all-papers-wrap summary {
+    padding: 14px 20px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    background: var(--surface2);
+    user-select: none;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .all-papers-wrap summary::-webkit-details-marker { display: none; }
+
+  .all-papers-wrap summary::before {
+    content: '▶';
+    font-size: 0.65rem;
+    transition: transform 0.2s;
+  }
+
+  .all-papers-wrap[open] summary::before {
+    transform: rotate(90deg);
+  }
+
+  .all-papers-wrap summary:hover { color: var(--text); }
+
+  .all-papers-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+
+  .all-papers-table th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+
+  .all-papers-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  .all-papers-table tr:last-child td { border-bottom: none; }
+  .all-papers-table tr:hover td { background: rgba(79,142,247,0.03); }
+
+  .all-papers-table a {
+    color: var(--text-dim);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .all-papers-table a:hover {
+    color: var(--accent);
+    text-decoration: underline;
+  }
+
+  .formula-section {
+    margin-top: 40px;
+  }
+
+  .formula-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-top: 16px;
+  }
+
+  .formula-box {
+    background: rgba(79,142,247,0.06);
+    border: 1px solid rgba(79,142,247,0.2);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+  }
+
+  .formula-title {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .formula-expr {
+    font-size: 0.95rem;
+    color: var(--accent);
+    font-family: 'Space Mono', monospace;
+    line-height: 1.6;
+  }
+
+  .formula-note {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 6px;
+  }
+
+  .formula-dims {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .formula-dim {
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .dim-name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .dim-weight {
+    font-size: 0.82rem;
+    color: var(--accent2);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .dim-desc {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+    margin-top: 2px;
+  }
+
+  .formula-sources {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .formula-sources a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .footer {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 768px) {
+    .header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .summary-cell, .kw-cell { display: none; }
+  }
+</style>
+</head>
+<body>
+<div id="summary-tooltip"></div>
+<div class="container">
+    <div class="header-left">
+      <h1>📚 AI Infra &amp; 推理论文周报</h1>
+      <p class="subtitle">vLLM · SGLang · DeepSeek · Qwen · LLM Inference · KV Cache · AI Infrastructure · Speculative Decoding</p>
+    </div>
+    <div class="header-right">
+      <span class="meta-tag">📅 2026-03-04 22:30</span>
+      <span class="meta-tag">⏱ 最近7天</span>
+    </div>
+  </header>
+
+  <div class="stats-bar">
+    <div class="stat-card">
+      <span class="stat-label">发现论文</span>
+      <span class="stat-value">44</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">精选 Top</span>
+      <span class="stat-value">10</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">监控主题</span>
+      <span class="stat-value">6</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">热度最高</span>
+      <span class="stat-value" style="font-size:1.1rem;color:var(--hot)">100分</span>
+    </div>
+  </div>
+
+  <p class="section-title">🏆 本周热门论文 Top 10 — 综合热度排名</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>排名</th>
+          <th>标题</th>
+          <th>中文摘要</th>
+          <th>关键词</th>
+          <th>发布者</th>
+          <th>热度分 (0-100)</th>
+          <th>发布日期</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#1</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.03281v1" target="_blank" class="paper-title">CFG-Ctrl: Control-Based Classifier-Free Diffusion Guidance</a>
+            </td>
+            <td class="summary-cell">
+                <span class="summary-short" data-full="Classifier-Free Guidance (CFG) has emerged as a central approach for enhancing semantic alignment in flow-based diffusion models. In this paper, we explore a unified framework called CFG-Ctrl , which reinterprets CFG as a control applied to the first-order continuous-time generative flow, using the conditional–unconditional discrepancy as an error signal to adjust the velocity field. From this perspective, we summarize vanilla CFG as a proportional controller (P-control) with fixed gain, and typical follow-up variants develop extended control-law designs derived from it. However, existing methods mainly rely on linear control, inherently leading to instability, overshooting, and degraded semantic fidelity especially on large guidance scales. To address this, we introduce Sliding Mode Control CFG ( SMC-CFG ), which enforces the generative flow toward a rapidly convergent sliding manifold. Specifically, we define an exponential sliding mode surface over the semantic prediction error and introduce a switching control term to establish nonlinear feedback-guided correction. Moreover, we provide a Lyapunov stability analysis to theoretically support finite-time convergence. Experiments across text-to-image generation models including Stable Diffusion 3.5, Flux, and Qwen-Image demonstrate that SMC-CFG outperforms standard CFG in semantic alignment and enhances robustness across a wide range of guidance scales. Project Page: https://hanyang-21.github.io/CFG-Ctrl .">无分类器引导（ CFG ）已经成为基于流的扩散模型中增强语义对齐的中心方法。在本文中，我们探索了一个名为CFG-Ctrl的统一框架，该框架将CFG重新解释为应用于一阶连续时间生成流的控件，使用条件-无条件差异作为错误</span>
+                <span class="summary-hint">🔍 hover查看英文原文</span>
+            </td>
+            <td class="kw-cell"><span class="kw-badge">Guidance</span><span class="kw-badge">CFG</span><span class="kw-badge">Alignment</span><span class="kw-badge">Image Generation</span><span class="kw-badge">Diffusion Model</span></td>
+            <td class="affil-cell">Hanyang Wang</td>
+            <td class="hot-cell">
+                <span class="hot-score">100</span>
+                <div class="hot-bar-bg"><div class="hot-bar" style="width:100%;background:#f97316"></div></div>
+                <div class="hot-badges"><span class="hf-badge" title="Hugging Face 社区点赞数">👍 6</span></div>
+            </td>
+            <td class="date-cell">2026-03-03</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#2</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.01840v1" target="_blank" class="paper-title">FireRed-OCR Technical Report</a>
+            </td>
+            <td class="summary-cell">
+                <span class="summary-short" data-full="We present FireRed-OCR, a systematic framework to specialize general VLMs into high-performance OCR models. Large Vision-Language Models (VLMs) have demonstrated impressive general capabilities but frequently suffer from &quot;structural hallucination&quot; when processing complex documents, limiting their utility in industrial OCR applications. In this paper, we introduce FireRed-OCR, a novel framework designed to transform general-purpose VLMs (based on Qwen3-VL) into pixel-precise structural document parsing experts. To address the scarcity of high-quality structured data, we construct a &quot;Geometry + Semantics&quot; Data Factory. Unlike traditional random sampling, our pipeline leverages geometric feature clustering and multi-dimensional tagging to synthesize and curate a highly balanced dataset, effectively handling long-tail layouts and rare document types. Furthermore, we propose a Three-Stage Progressive Training strategy that guides the model from pixel-level perception to logical structure generation. This curriculum includes: (1) Multi-task Pre-alignment to ground the model’s understanding of document structure; (2) Specialized SFT for standardizing full-image Markdown output; and (3) Format-Constrained Group Relative Policy Optimization (GRPO), which utilizes reinforcement learning to enforce strict syntactic validity and structural integrity (e.g., table closure, formula syntax). Extensive evaluations on OmniDocBench v1.5 demonstrate that FireRed-OCR achieves state-of-the-art performance with an overall score of 92.94%, significantly outperforming strong baselines such as DeepSeek-OCR 2 and OCRVerse across text, formula, table, and reading order metrics. We open-source our code and model weights to facilitate the &quot;General VLM to Specialized Structural Expert&quot; paradigm.">MYMEMORY WARNING: YOU USED ALL AVAILABLE FREE TRANSLATIONS FOR TODAY. NEXT AVAILABLE IN  18 HOURS 29 MINUTES 19 SECONDS VISIT HTTPS://MYMEMORY.TRANSLATED.NET/DOC/USAGELIMITS.PHP TO TRANSLATE MORE</span>
+                <span class="summary-hint">🔍 hover查看英文原文</span>
+            </td>
+            <td class="kw-cell"><span class="kw-badge">FireRed-OCR</span><span class="kw-badge">Document</span><span class="kw-badge">Framework</span><span class="kw-badge">Structure</span><span class="kw-badge">Reinforcement Learning</span></td>
+            <td class="affil-cell">DeepSeek</td>
+            <td class="hot-cell">
+                <span class="hot-score">84</span>
+                <div class="hot-bar-bg"><div class="hot-bar" style="width:84%;background:#f97316"></div></div>
+                <div class="hot-badges"><span class="hf-badge" title="Hugging Face 社区点赞数">👍 3</span></div>
+            </td>
+            <td class="date-cell">2026-03-02</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#3</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.02099v2" target="_blank" class="paper-title">Recursive Think-Answer Process for LLMs and VLMs</a>
+            </td>
+            <td class="summary-cell">
+                <span class="summary-short" data-full="Think-Answer reasoners such as DeepSeek-R1 have made notable progress by leveraging interpretable internal reasoning. However, despite the frequent presence of self-reflective cues like &quot;Oops!&quot;, they remain vulnerable to output errors during single-pass inference. To address this limitation, we propose an efficient Recursive Think-Answer Process (R-TAP) that enables models to engage in iterative reasoning cycles and generate more accurate answers, going beyond conventional single-pass approaches. Central to this approach is a confidence generator that evaluates the certainty of model responses and guides subsequent improvements. By incorporating two complementary rewards-Recursively Confidence Increase Reward and Final Answer Confidence Reward-we show that R-TAP-enhanced models consistently outperform conventional single-pass methods for both large language models (LLMs) and vision-language models (VLMs). Moreover, by analyzing the frequency of &quot;Oops&quot;-like expressions in model responses, we find that R-TAP-applied models exhibit significantly fewer self-reflective patterns, resulting in more stable and faster inference-time reasoning. We hope R-TAP pave the way evolving into efficient and elaborated methods to refine the reasoning processes of future AI.">MYMEMORY WARNING: YOU USED ALL AVAILABLE FREE TRANSLATIONS FOR TODAY. NEXT AVAILABLE IN  18 HOURS 29 MINUTES 17 SECONDS VISIT HTTPS://MYMEMORY.TRANSLATED.NET/DOC/USAGELIMITS.PHP TO TRANSLATE MORE</span>
+                <span class="summary-hint">🔍 hover查看英文原文</span>
+            </td>
+            <td class="kw-cell"><span class="kw-badge">Confidence</span><span class="kw-badge">Inference</span><span class="kw-badge">Large Language Model</span><span class="kw-badge">Presence</span><span class="kw-badge">Limitation</span></td>
+            <td class="affil-cell">DeepSeek</td>
+            <td class="hot-cell">
+                <span class="hot-score">65</span>
+                <div class="hot-bar-bg"><div class="hot-bar" style="width:65%;background:#facc15"></div></div>
+                <div class="hot-badges"><span class="hf-badge" title="Hugging Face 社区点赞数">👍 4</span><span class="ver-badge" title="arXiv 版本（v2/v3 表示有修订）">v2</span></div>
+            </td>
+            <td class="date-cell">2026-03-02</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#4</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.02737v1" target="_blank" class="paper-title">Ouroboros: Wafer-Scale SRAM CIM with Token-Grained Pipelining for Large Language Model Inference</a>
+            </td>
+            <td class="summary-cell">
+                <span class="summary-short" data-full="Large language model (LLM) inference demands vast memory capacity and hierarchical memory structures, but conventional architectures suffer from excessive energy and latency costs due to frequent data movement across deep memory tiers. To address this, we propose a wafer-scale SRAM-based Computing-in-Memory (CIM) architecture that performs all LLM operations in situ within the first-level SRAM, eliminating off-chip data migration and achieving unprecedented energy efficiency. However, wafer-scale SRAM CIM presents multiple challenges due to the limited first-level memory capacity, which requires efficient compute-memory resource allocation. To enable efficient LLM execution on this architecture, we propose three key innovations: Token-Grained Pipelining – Conventional sequence-level pipelining suffers from underutilization due to varying input sequence lengths and batching policies. We introduce a fine-grained token-level pipeline that mitigates sequence length variations, enhancing the utilization of CIM cores while minimizing the storage capacity required for activation. Distributed Dynamic KV Cache Management – KV cache storage occupies significant memory in LLM inference. We optimize on-chip KV caching by decoupling CIM memory from compute assignment, leveraging fragmented SRAM CIM memory within already-allocated cores for efficient KV storage, and reducing dedicated memory overhead. Communication-Aware and Fault-Tolerant Core Mapping – Efficient execution on wafer-scale CIM requires optimal mapping from transformer blocks to CIM cores to minimize inter-(pipeline) stage communication while ensuring intra-stage compute locality. We design a network-on-wafer-aware mapping strategy that places pipeline stages in close proximity while also distributing large layers efficiently across multiple cores. This mapping accounts for core-level defects, improving fault tolerance in wafer-scale deployment. Experimental results demonstrate that Ouroboros achieves 4.1 × 4.1\times average throughput improvement and 4.2 × 4.2\times average energy efficiency gain over state-of-the-art systems, peaking at 9.1 × 9.1\times throughput and 17 × 17\times energy efficiency for the 13B model.">MYMEMORY WARNING: YOU USED ALL AVAILABLE FREE TRANSLATIONS FOR TODAY. NEXT AVAILABLE IN  18 HOURS 29 MINUTES 15 SECONDS VISIT HTTPS://MYMEMORY.TRANSLATED.NET/DOC/USAGELIMITS.PHP TO TRANSLATE MORE</span>
+                <span class="summary-hint">🔍 hover查看英文原文</span>
+            </td>
+            <td class="kw-cell"><span class="kw-badge">Wafer-Scale Chips</span><span class="kw-badge">Computing-in-Memory</span><span class="kw-badge">Large Language Model</span><span class="kw-badge">Scheduling</span></td>
+            <td class="affil-cell">Yiqi Liu</td>
+            <td class="hot-cell">
+                <span class="hot-score">51</span>
+                <div class="hot-bar-bg"><div class="hot-bar" style="width:51%;background:#facc15"></div></div>
+                <div class="hot-badges"><span class="fire-badge">🔥×2</span></div>
+            </td>
+            <td class="date-cell">2026-03-03</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#5</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.02631v1" target="_blank" class="paper-title">Cross-Family Speculative Prefill: Training-Free Long-Context Compression with Small Draft Models</a>
+            </td>
+            <td class="summary-cell">
+                <span class="summary-short" data-full="Prompt length is a major bottleneck in agentic large language model (LLM) workloads, where repeated inference steps and multi-call loops incur substantial prefill cost. Recent work on speculative prefill demonstrates that attention based token importance estimation can enable training-free prompt compression, but this assumes the existence of a draft model that shares the same tokenizer as the target model. In practice however, agentic pipelines frequently employ models without any smaller in-family draft model. In this work, we study cross-family speculative prefill, where a lightweight draft model from one model family is used to perform prompt compression for a target model from a different family. Using the same speculative prefill mechanism as prior work, we evaluate a range of cross-family draft–target combinations, including Qwen, LLaMA, and DeepSeek models. Across a broad diversity of tasks, we find that attention-based token importance estimation transfers reliably across different model families despite differences in model architectures and tokenizers between draft and target models. Cross-model prompt compression largely retains 90–100% of full-prompt baseline performance and, in some cases, slightly improves accuracy due to denoising effects, while delivering substantial reductions in time-to-first-token (TTFT). These results suggest that speculative prefill depends mainly on task priors and semantic structure, thus serving as a generalizable prompt compression primitive. We discuss the implications of our findings for agentic systems, where repeated long-context inference and heterogeneous model stacks make cross-model prompt compression both necessary and practical.">MYMEMORY WARNING: YOU USED ALL AVAILABLE FREE TRANSLATIONS FOR TODAY. NEXT AVAILABLE IN  18 HOURS 29 MINUTES 13 SECONDS VISIT HTTPS://MYMEMORY.TRANSLATED.NET/DOC/USAGELIMITS.PHP TO TRANSLATE MORE</span>
+                <span class="summary-hint">🔍 hover查看英文原文</span>
+            </td>
+            <td class="kw-cell"><span class="kw-badge">Inference</span><span class="kw-badge">Attention</span><span class="kw-badge">Estimation</span><span class="kw-badge">Large Language Model</span><span class="kw-badge">Existence</span></td>
+            <td class="affil-cell">DeepSeek</td>
+            <td class="hot-cell">
+                <span class="hot-score">51</span>
+                <div class="hot-bar-bg"><div class="hot-bar" style="width:51%;background:#facc15"></div></div>
+                <div class="hot-badges"><span class="fire-badge">🔥×2</span></div>
+            </td>
+            <td class="date-cell">2026-03-03</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#6</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.02510v1" target="_blank" class="paper-title">ParEVO: Synthesizing Code for Irregular Data: High-Performance Parallelism through Agentic Evolution</a>
+            </td>
+            <td class="summary-cell">
+                <span class="summary-short" data-full="The transition from sequential to parallel computing is essential for modern high-performance applications but is hindered by the steep learning curve of concurrent programming. This challenge is magnified for irregular data structures (such as sparse graphs, unbalanced trees, and non-uniform meshes) where static scheduling fails and data dependencies are unpredictable. Current Large Language Models (LLMs) often fail catastrophically on these tasks, generating code plagued by subtle race conditions, deadlocks, and sub-optimal scaling.   We bridge this gap with ParEVO, a framework designed to synthesize high-performance parallel algorithms for irregular data. Our contributions include: (1) The Parlay-Instruct Corpus, a curated dataset of 13,820 tasks synthesized via a &quot;Critic-Refine&quot; pipeline that explicitly filters for empirically performant algorithms that effectively utilize Work-Span parallel primitives; (2) specialized DeepSeek, Qwen, and Gemini models fine-tuned to align probabilistic generation with the rigorous semantics of the ParlayLib library; and (3) an Evolutionary Coding Agent (ECA) that improves the &quot;last mile&quot; of correctness by iteratively repairing code using feedback from compilers, dynamic race detectors, and performance profilers.   On the ParEval benchmark, ParEVO achieves an average 106x speedup (with a maximum of 1103x) across the suite, and a robust 13.6x speedup specifically on complex irregular graph problems, outperforming state-of-the-art commercial models. Furthermore, our evolutionary approach matches state-of-the-art expert human baselines, achieving up to a 4.1x speedup on specific highly-irregular kernels. Source code and datasets are available at https://github.com/WildAlg/ParEVO.">MYMEMORY WARNING: YOU USED ALL AVAILABLE FREE TRANSLATIONS FOR TODAY. NEXT AVAILABLE IN  18 HOURS 29 MINUTES 11 SECONDS VISIT HTTPS://MYMEMORY.TRANSLATED.NET/DOC/USAGELIMITS.PHP TO TRANSLATE MORE</span>
+                <span class="summary-hint">🔍 hover查看英文原文</span>
+            </td>
+            <td class="kw-cell"><span class="kw-badge">ParEVO</span><span class="kw-badge">Large Language Model</span><span class="kw-badge">Transition</span><span class="kw-badge">Framework</span><span class="kw-badge">Correctness</span></td>
+            <td class="affil-cell">DeepSeek</td>
+            <td class="hot-cell">
+                <span class="hot-score">51</span>
+                <div class="hot-bar-bg"><div class="hot-bar" style="width:51%;background:#facc15"></div></div>
+                <div class="hot-badges"><span class="fire-badge">🔥×2</span></div>
+            </td>
+            <td class="date-cell">2026-03-03</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#7</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2602.23881v1" target="_blank" class="paper-title">LK Losses: Direct Acceptance Rate Optimization for Speculative Decoding</a>
+            </td>
+            <td class="summary-cell">
+                <span class="summary-short" data-full="Speculative decoding accelerates autoregressive large language model (LLM) inference by using a lightweight draft model to propose candidate tokens that are then verified in parallel by the target model. The speedup is significantly determined by the acceptance rate, yet standard training minimizes Kullback-Leibler (KL) divergence as a proxy objective. While KL divergence and acceptance rate share the same global optimum, small draft models, having limited capacity, typically converge to suboptimal solutions where minimizing KL does not guarantee maximizing acceptance rate. To address this issue, we propose LK losses , special training objectives that directly target acceptance rate. Comprehensive experiments across four draft architectures and six target models, ranging from 8B to 685B parameters, demonstrate consistent improvements in acceptance metrics across all configurations compared to the standard KL-based training. We evaluate our approach on general, coding and math domains and report gains of up to 8-10% in average acceptance length. LK losses are easy to implement, introduce no computational overhead and can be directly integrated into any existing speculator training framework, making them a compelling alternative to the existing draft training objectives.">MYMEMORY WARNING: YOU USED ALL AVAILABLE FREE TRANSLATIONS FOR TODAY. NEXT AVAILABLE IN  18 HOURS 29 MINUTES 09 SECONDS VISIT HTTPS://MYMEMORY.TRANSLATED.NET/DOC/USAGELIMITS.PHP TO TRANSLATE MORE</span>
+                <span class="summary-hint">🔍 hover查看英文原文</span>
+            </td>
+            <td class="kw-cell"><span class="kw-badge">Speculative Decoding</span></td>
+            <td class="affil-cell">Alexander Samarin</td>
+            <td class="hot-cell">
+                <span class="hot-score">48</span>
+                <div class="hot-bar-bg"><div class="hot-bar" style="width:48%;background:#facc15"></div></div>
+                <div class="hot-badges"><span class="hf-badge" title="Hugging Face 社区点赞数">👍 18</span></div>
+            </td>
+            <td class="date-cell">2026-02-27</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#8</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.01400v1" target="_blank" class="paper-title">Token Reduction via Local and Global Contexts Optimization for Efficient Video Large Language Models</a>
+            </td>
+            <td class="summary-cell">
+                <span class="summary-short" data-full="Video Large Language Models (VLLMs) demonstrate strong video understanding but suffer from inefficiency due to redundant visual tokens. Existing pruning primary targets intra-frame spatial redundancy or prunes inside the LLM with shallow-layer overhead, yielding suboptimal spatiotemporal reduction and underutilizing long-context compressibility. All of them often discard subtle yet informative context from merged or pruned tokens. In this paper, we propose a new perspective that elaborates token A nchors within intra-frame and inter-frame to comprehensively aggregate the informative contexts via local-global O ptimal T ransport ( AOT ). Specifically, we first establish local- and global-aware token anchors within each frame under the attention guidance, which then optimal transport aggregates the informative contexts from pruned tokens, constructing intra-frame token anchors. Then, building on the temporal frame clips, the first frame within each clip will be considered as the keyframe anchors to ensemble similar information from consecutive frames through optimal transport, while keeping distinct tokens to represent temporal dynamics, leading to efficient token reduction in a training-free manner. Extensive evaluations show that our proposed AOT obtains competitive performances across various short- and long-video benchmarks on leading video LLMs, obtaining substantial computational efficiency while preserving temporal and visual fidelity. Project webpage: AOT .">MYMEMORY WARNING: YOU USED ALL AVAILABLE FREE TRANSLATIONS FOR TODAY. NEXT AVAILABLE IN  18 HOURS 29 MINUTES 07 SECONDS VISIT HTTPS://MYMEMORY.TRANSLATED.NET/DOC/USAGELIMITS.PHP TO TRANSLATE MORE</span>
+                <span class="summary-hint">🔍 hover查看英文原文</span>
+            </td>
+            <td class="kw-cell"><span class="kw-badge">Large Language Model</span><span class="kw-badge">Reduction</span><span class="kw-badge">Compressibility</span><span class="kw-badge">Aware</span><span class="kw-badge">Attention</span></td>
+            <td class="affil-cell">Jinlong Li</td>
+            <td class="hot-cell">
+                <span class="hot-score">44</span>
+                <div class="hot-bar-bg"><div class="hot-bar" style="width:44%;background:#facc15"></div></div>
+                <div class="hot-badges"><span class="hf-badge" title="Hugging Face 社区点赞数">👍 1</span></div>
+            </td>
+            <td class="date-cell">2026-03-02</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#9</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.02949v1" target="_blank" class="paper-title">SEALing the Gap: A Reference Framework for LLM Inference Carbon Estimation via Multi-Benchmark Driven Embodiment</a>
+            </td>
+            <td class="summary-cell">
+                <span class="summary-short" data-full="Large Language Models (LLMs) are rapidly gaining traction in software engineering, yet their growing carbon footprint raises pressing sustainability concerns. While training emissions are substantial, inference quickly surpasses them due to the sheer volume of prompts processed. This shift underscores the urgent need for accurate, prompt-level carbon measurement during inference to enable informed, sustainability-focused decision-making. To address the limitations of existing approaches, in this paper, we outline the guiding principles for a novel reference framework for LLM inference carbon estimation that can guide the design of future tools and provide a systematic foundation for advancing sustainability research in this domain. We also introduce SEAL , an early embodiment of these principles that leverages a multi-benchmark-driven approach for per-prompt carbon estimation. Its initial validation shows promising results, positioning SEAL as a foundation for standardized sustainability assessment across the LLM ecosystem.">MYMEMORY WARNING: YOU USED ALL AVAILABLE FREE TRANSLATIONS FOR TODAY. NEXT AVAILABLE IN  18 HOURS 29 MINUTES 05 SECONDS VISIT HTTPS://MYMEMORY.TRANSLATED.NET/DOC/USAGELIMITS.PHP TO TRANSLATE MORE</span>
+                <span class="summary-hint">🔍 hover查看英文原文</span>
+            </td>
+            <td class="kw-cell"><span class="kw-badge">Green Software</span><span class="kw-badge">Energy Modeling</span><span class="kw-badge">LLM Benchmarks</span></td>
+            <td class="affil-cell">Priyavanshi Pathania</td>
+            <td class="hot-cell">
+                <span class="hot-score">44</span>
+                <div class="hot-bar-bg"><div class="hot-bar" style="width:44%;background:#facc15"></div></div>
+                <div class="hot-badges"></div>
+            </td>
+            <td class="date-cell">2026-03-03</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#10</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.02772v1" target="_blank" class="paper-title">Agentic Self-Evolutionary Replanning for Embodied Navigation</a>
+            </td>
+            <td class="summary-cell">
+                <span class="summary-short" data-full="Failure is inevitable for embodied navigation in complex environments. To enhance the resilience, replanning (RP) is a viable option, where the robot is allowed to fail, but is capable of adjusting plan until success. However, existing RP approaches freeze the ego action model and miss the opportunities to explore better plans by upgrading the robot itself. To address this limitation, we propose Self-Evolutionary RePlanning, or SERP for short, which leads to a paradigm shift from frozen models towards evolving models by run-time learning from recent experiences. In contrast to existing model evolution approaches that often get stuck at predefined static parameters, we introduce agentic self-evolving action model that uses in-context learning with auto-differentiation (ILAD) for adaptive function adjustment and global parameter reset. To achieve token-efficient replanning for SERP, we also propose graph chain-of-thought (GCOT) replanning with large language model (LLM) inference over distilled graphs. Extensive simulation and real-world experiments demonstrate that SERP achieves higher success rate with lower token expenditure over various benchmarks, validating its superior robustness and efficiency across diverse environments.">MYMEMORY WARNING: YOU USED ALL AVAILABLE FREE TRANSLATIONS FOR TODAY. NEXT AVAILABLE IN  18 HOURS 29 MINUTES 03 SECONDS VISIT HTTPS://MYMEMORY.TRANSLATED.NET/DOC/USAGELIMITS.PHP TO TRANSLATE MORE</span>
+                <span class="summary-hint">🔍 hover查看英文原文</span>
+            </td>
+            <td class="kw-cell"><span class="kw-badge">Navigation</span><span class="kw-badge">Action</span><span class="kw-badge">Large Language Model</span><span class="kw-badge">In-Context Learning</span><span class="kw-badge">Chain-of-Thought</span></td>
+            <td class="affil-cell">Guoliang Li</td>
+            <td class="hot-cell">
+                <span class="hot-score">44</span>
+                <div class="hot-bar-bg"><div class="hot-bar" style="width:44%;background:#facc15"></div></div>
+                <div class="hot-badges"></div>
+            </td>
+            <td class="date-cell">2026-03-03</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  
+  <p class="section-title">🔍 论文搜索关键词（按主题分组）</p>
+  <div class="search-kw-wrap">
+    <div class="search-kw-row"><span class="search-kw-topic">🚀 LLM推理优化 (Inference Optimization)</span><span class="search-kw-tags"><span class="search-kw-tag">LLM inference</span><span class="search-kw-tag">inference optimization</span><span class="search-kw-tag">serving system</span><span class="search-kw-tag">agentic inference</span><span class="search-kw-tag">disaggregated inference</span><span class="search-kw-tag">I/O bottleneck LLM</span></span></div>
+<div class="search-kw-row"><span class="search-kw-topic">🏗️ AI Infra / 推理框架</span><span class="search-kw-tags"><span class="search-kw-tag">vLLM</span><span class="search-kw-tag">SGLang</span><span class="search-kw-tag">TensorRT-LLM</span><span class="search-kw-tag">inference framework</span><span class="search-kw-tag">storage bandwidth LLM</span><span class="search-kw-tag">disaggregated LLM</span></span></div>
+<div class="search-kw-row"><span class="search-kw-topic">🔵 DeepSeek 相关</span><span class="search-kw-tags"><span class="search-kw-tag">DeepSeek</span></span></div>
+<div class="search-kw-row"><span class="search-kw-topic">🟣 Qwen 相关</span><span class="search-kw-tags"><span class="search-kw-tag">Qwen</span></span></div>
+<div class="search-kw-row"><span class="search-kw-topic">💾 KV Cache 优化</span><span class="search-kw-tags"><span class="search-kw-tag">KV cache</span><span class="search-kw-tag">attention cache</span><span class="search-kw-tag">prefix cache</span></span></div>
+<div class="search-kw-row"><span class="search-kw-topic">⚡ 推测解码 / 量化</span><span class="search-kw-tags"><span class="search-kw-tag">speculative decoding</span><span class="search-kw-tag">quantization LLM</span><span class="search-kw-tag">model compression inference</span></span></div>
+
+  </div>
+  <p class="section-title">☁️ 论文关键词词云</p>
+  <div class="wordcloud-wrap">
+    <div id="wordcloud-chart" style="width:100%;height:380px;"></div>
+  </div>
+
+
+  <p class="section-title">📋 所有采集论文列表</p>
+  <details class="all-papers-wrap">
+    <summary>点击展开 · 共 38 篇论文</summary>
+    <table class="all-papers-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>标题</th>
+          <th>发布日期</th>
+          <th>热度分</th>
+          <th>引用次数</th>
+          <th>影响力引用</th>
+          <th>HF 点赞</th>
+          <th>arXiv 版本</th>
+          <th>GitHub 代码</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td><a href="http://arxiv.org/abs/2603.03281v1" target="_blank">CFG-Ctrl: Control-Based Classifier-Free Diffusion Guidance</a></td><td>2026-03-03</td><td>100</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#34d399;font-weight:600">👍 6</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><a href="https://github.com/hanyang-21/CFG-Ctrl" target="_blank" style="color:#4ade80;font-size:0.75rem;font-weight:600">✅ Code ⭐9</a></td></tr>
+<tr><td>2</td><td><a href="http://arxiv.org/abs/2603.01840v1" target="_blank">FireRed-OCR Technical Report</a></td><td>2026-03-02</td><td>84</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#34d399;font-weight:600">👍 3</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><a href="https://github.com/FireRedTeam/FireRed-OCR" target="_blank" style="color:#4ade80;font-size:0.75rem;font-weight:600">✅ Code ⭐105</a></td></tr>
+<tr><td>3</td><td><a href="http://arxiv.org/abs/2603.02099v2" target="_blank">Recursive Think-Answer Process for LLMs and VLMs</a></td><td>2026-03-02</td><td>65</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#34d399;font-weight:600">👍 4</span></td><td style="text-align:center"><span style="color:#facc15;font-weight:600">v2</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>4</td><td><a href="http://arxiv.org/abs/2603.02737v1" target="_blank">Ouroboros: Wafer-Scale SRAM CIM with Token-Grained Pipelining for Large Language Model Inference</a></td><td>2026-03-03</td><td>51</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>5</td><td><a href="http://arxiv.org/abs/2603.02631v1" target="_blank">Cross-Family Speculative Prefill: Training-Free Long-Context Compression with Small Draft Models</a></td><td>2026-03-03</td><td>51</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>6</td><td><a href="http://arxiv.org/abs/2603.02510v1" target="_blank">ParEVO: Synthesizing Code for Irregular Data: High-Performance Parallelism through Agentic Evolution</a></td><td>2026-03-03</td><td>51</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>7</td><td><a href="http://arxiv.org/abs/2602.23881v1" target="_blank">LK Losses: Direct Acceptance Rate Optimization for Speculative Decoding</a></td><td>2026-02-27</td><td>48</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#34d399;font-weight:600">👍 18</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>8</td><td><a href="http://arxiv.org/abs/2603.01400v1" target="_blank">Token Reduction via Local and Global Contexts Optimization for Efficient Video Large Language Models</a></td><td>2026-03-02</td><td>44</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#34d399;font-weight:600">👍 1</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>9</td><td><a href="http://arxiv.org/abs/2603.02949v1" target="_blank">SEALing the Gap: A Reference Framework for LLM Inference Carbon Estimation via Multi-Benchmark Driven Embodiment</a></td><td>2026-03-03</td><td>44</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>10</td><td><a href="http://arxiv.org/abs/2603.02772v1" target="_blank">Agentic Self-Evolutionary Replanning for Embodied Navigation</a></td><td>2026-03-03</td><td>44</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>11</td><td><a href="http://arxiv.org/abs/2603.02615v1" target="_blank">Think, But Don't Overthink: Reproducing Recursive Language Models</a></td><td>2026-03-03</td><td>44</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>12</td><td><a href="http://arxiv.org/abs/2603.03072v1" target="_blank">TikZilla: Scaling Text-to-TikZ with High-Quality Data and Reinforcement Learning</a></td><td>2026-03-03</td><td>44</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>13</td><td><a href="http://arxiv.org/abs/2603.02504v1" target="_blank">NeuroProlog: Multi-Task Fine-Tuning for Neurosymbolic Mathematical Reasoning via the Cocktail Effect</a></td><td>2026-03-03</td><td>44</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>14</td><td><a href="http://arxiv.org/abs/2603.02872v1" target="_blank">Think-as-You-See: Streaming Chain-of-Thought Reasoning for Large Vision-Language Models</a></td><td>2026-03-03</td><td>44</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>15</td><td><a href="http://arxiv.org/abs/2603.03251v1" target="_blank">Speculative Speculative Decoding</a></td><td>2026-03-03</td><td>44</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>16</td><td><a href="http://arxiv.org/abs/2603.01639v1" target="_blank">Learning to Draft: Adaptive Speculative Decoding with Reinforcement Learning</a></td><td>2026-03-02</td><td>43</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>17</td><td><a href="http://arxiv.org/abs/2603.01499v1" target="_blank">Towards Privacy-Preserving LLM Inference via Collaborative Obfuscation (Technical Report)</a></td><td>2026-03-02</td><td>43</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>18</td><td><a href="http://arxiv.org/abs/2603.02057v1" target="_blank">Beyond Microservices: Testing Web-Scale RCA Methods on GPU-Driven LLM Workloads</a></td><td>2026-03-02</td><td>35</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>19</td><td><a href="http://arxiv.org/abs/2603.01486v1" target="_blank">Agentic Multi-Source Grounding for Enhanced Query Intent Understanding: A DoorDash Case Study</a></td><td>2026-03-02</td><td>35</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>20</td><td><a href="http://arxiv.org/abs/2603.01477v1" target="_blank">SFCo-Nav: Efficient Zero-Shot Visual Language Navigation via Collaboration of Slow LLM and Fast Attributed Graph Alignment</a></td><td>2026-03-02</td><td>35</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>21</td><td><a href="http://arxiv.org/abs/2603.01788v1" target="_blank">nchellwig at SemEval-2026 Task 3: Self-Consistent Structured Generation (SCSG) for Dimensional Aspect-Based Sentiment Analysis using Large Language Models</a></td><td>2026-03-02</td><td>35</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>22</td><td><a href="http://arxiv.org/abs/2603.01875v1" target="_blank">KDFlow: A User-Friendly and Efficient Knowledge Distillation Framework for Large Language Models</a></td><td>2026-03-02</td><td>35</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>23</td><td><a href="http://arxiv.org/abs/2603.01814v1" target="_blank">Architecture-Aware Multi-Design Generation for Repository-Level Feature Addition</a></td><td>2026-03-02</td><td>35</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>24</td><td><a href="http://arxiv.org/abs/2603.01651v1" target="_blank">LexChronos: An Agentic Framework for Structured Event Timeline Extraction in Indian Jurisprudence</a></td><td>2026-03-02</td><td>35</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>25</td><td><a href="http://arxiv.org/abs/2603.02202v1" target="_blank">Frontier Models Can Take Actions at Low Probabilities</a></td><td>2026-03-02</td><td>35</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>26</td><td><a href="http://arxiv.org/abs/2603.02188v1" target="_blank">Multi-Head Low-Rank Attention</a></td><td>2026-03-02</td><td>35</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>27</td><td><a href="http://arxiv.org/abs/2603.01426v1" target="_blank">Understanding the Physics of Key-Value Cache Compression for LLMs through Attention Dynamics</a></td><td>2026-03-02</td><td>35</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>28</td><td><a href="http://arxiv.org/abs/2603.01581v1" target="_blank">KERV: Kinematic-Rectified Speculative Decoding for Embodied VLA Models</a></td><td>2026-03-02</td><td>35</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>29</td><td><a href="http://arxiv.org/abs/2603.01399v1" target="_blank">Quasar: Quantized Self-Speculative Acceleration for Rapid Inference via Memory-Efficient Verification</a></td><td>2026-03-02</td><td>35</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>30</td><td><a href="http://arxiv.org/abs/2603.01194v1" target="_blank">RnG: A Unified Transformer for Complete 3D Modeling from Partial Observations</a></td><td>2026-03-01</td><td>26</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>31</td><td><a href="http://arxiv.org/abs/2603.00907v1" target="_blank">KVSlimmer: Theoretical Insights and Practical Optimizations for Asymmetric KV Merging</a></td><td>2026-03-01</td><td>26</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>32</td><td><a href="http://arxiv.org/abs/2603.00563v1" target="_blank">Whisper-MLA: Reducing GPU Memory Consumption of ASR Models based on MHA2MLA Conversion</a></td><td>2026-02-28</td><td>17</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>33</td><td><a href="http://arxiv.org/abs/2603.00356v1" target="_blank">Token Management in Multi-Tenant AI Inference Platforms</a></td><td>2026-02-27</td><td>16</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>34</td><td><a href="http://arxiv.org/abs/2602.22593v2" target="_blank">FLYING SERVING: On-the-Fly Parallelism Switching for Large Language Model Serving</a></td><td>2026-02-26</td><td>9</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#facc15;font-weight:600">v2</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>35</td><td><a href="http://arxiv.org/abs/2602.23968v1" target="_blank">Learning Generation Orders for Masked Discrete Diffusion Models via Variational Inference</a></td><td>2026-02-27</td><td>9</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>36</td><td><a href="http://arxiv.org/abs/2603.00196v1" target="_blank">Your Inference Request Will Become a Black Box: Confidential Inference for Cloud-based Large Language Models</a></td><td>2026-02-27</td><td>9</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>37</td><td><a href="http://arxiv.org/abs/2602.24174v1" target="_blank">Task-Centric Acceleration of Small-Language Models</a></td><td>2026-02-27</td><td>9</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>38</td><td><a href="http://arxiv.org/abs/2602.23233v1" target="_blank">The Counterfactual Combine: A Causal Framework for Player Evaluation</a></td><td>2026-02-26</td><td>0</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+
+      </tbody>
+    </table>
+  </details>
+
+  <section class="formula-section">
+    <p class="section-title">📐 热度评分公式详解</p>
+    <div class="formula-wrap">
+      <div class="formula-box">
+        <div class="formula-title">综合热度分（满分 100 分）</div>
+        <div class="formula-expr">
+          热度分 = 引用次数分（25）+ 影响力引用分（15）+ 时效性分（20）+ HF点赞分（20）+ GitHub/PWC代码收录（10）+ 版本分（5）+ 跨分类命中分（5）
+        </div>
+        <div class="formula-note">最终归一化至 0–100 分</div>
+      </div>
+      <div class="formula-dims">
+        <div class="formula-dim">
+          <span class="dim-name">📚 引用次数</span>
+          <span class="dim-weight">25 分</span>
+          <span class="dim-desc">来自 Semantic Scholar。log₂(引用数+1) / log₂(1001) × 25，约 1000 次引用得满分。对成熟论文最有效。</span>
+        </div>
+        <div class="formula-dim">
+          <span class="dim-name">⭐ 影响力引用</span>
+          <span class="dim-weight">15 分</span>
+          <span class="dim-desc">来自 Semantic Scholar influentialCitationCount。log₂(引用数+1) / log₂(51) × 15，约 50 次高影响力引用得满分。衡量论文质量而非数量。</span>
+        </div>
+        <div class="formula-dim">
+          <span class="dim-name">⏰ 时效性</span>
+          <span class="dim-weight">20 分</span>
+          <span class="dim-desc">发布当天得 20 分，7 天内线性衰减，超过 7 天得 0 分。确保新论文不会因无引用而被埋没。</span>
+        </div>
+        <div class="formula-dim">
+          <span class="dim-name">👍 HF 点赞数</span>
+          <span class="dim-weight">20 分</span>
+          <span class="dim-desc">来自 Hugging Face Papers 社区点赞数。log₂(点赞数+1) / log₂(101) × 20，约 100 个点赞得满分。<strong>对新论文最有效</strong>，发布当天即可获得社区反馈。</span>
+        </div>
+        <div class="formula-dim">
+          <span class="dim-name">💻 GitHub / Papers With Code 代码收录</span>
+          <span class="dim-weight">10 分</span>
+          <span class="dim-desc">论文是否有开源代码仓库（来自 HF Papers 关联的 GitHub 仓库）。<strong>有代码直接得 10 分，无代码得 0 分</strong>。有开源实现说明论文具有较高实用价值，且更容易被社区复现和引用。</span>
+        </div>
+        <div class="formula-dim">
+          <span class="dim-name">🔄 arXiv 版本数</span>
+          <span class="dim-weight">5 分</span>
+          <span class="dim-desc">v1=0分，v2=3分，v3及以上=5分。有修订版本说明论文收到了社区反馈，作者在积极完善。</span>
+        </div>
+        <div class="formula-dim">
+          <span class="dim-name">🔥 跨分类命中</span>
+          <span class="dim-weight">5 分</span>
+          <span class="dim-desc">被多个搜索主题命中：命中1个主题得2.5分，命中2个及以上得5分。说明论文覆盖多个研究方向。</span>
+        </div>
+      </div>
+      <div class="formula-sources">
+        数据来源：
+        <a href="https://www.semanticscholar.org" target="_blank">Semantic Scholar</a>（引用数）·
+        <a href="https://huggingface.co/papers" target="_blank">Hugging Face Papers</a>（社区热度 &amp; 代码仓库）·
+        <a href="https://arxiv.org" target="_blank">arXiv.org</a>（版本信息）·
+        <a href="https://paperswithcode.com" target="_blank">Papers With Code</a>（代码收录参考）
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <span>热度评分 = 引用次数（25%）+ 影响力引用（15%）+ 时效性（20%）+ HF点赞（20%）+ GitHub/PWC代码（10%）+ arXiv版本（5%）+ 跨分类命中（5%）</span>
+    <span>数据来源: <a href="https://arxiv.org" target="_blank">arXiv.org</a></span>
+  </footer>
+</div>
+
+<!-- ECharts + wordcloud -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts-wordcloud@2/dist/echarts-wordcloud.min.js"></script>
+<script>
+(function() {
+  // ---- ECharts 词云 ----
+  var chartDom = document.getElementById('wordcloud-chart');
+  if (chartDom) {
+    var myChart = echarts.init(chartDom, null, {renderer: 'canvas'});
+    var wcData = [{"name": "Large Language Model", "value": 325}, {"name": "Inference", "value": 245}, {"name": "Framework", "value": 140}, {"name": "Speculative Decoding", "value": 95}, {"name": "vLLM", "value": 80}, {"name": "SGLang", "value": 80}, {"name": "Attention", "value": 80}, {"name": "LLM", "value": 50}, {"name": "Reinforcement Learning", "value": 50}, {"name": "Verification", "value": 50}, {"name": "Chain-of-Thought", "value": 45}, {"name": "Capacity", "value": 35}, {"name": "Balance", "value": 35}, {"name": "LLM inference", "value": 30}, {"name": "inference optimization", "value": 30}, {"name": "serving system", "value": 30}, {"name": "agentic inference", "value": 30}, {"name": "disaggregated inference", "value": 30}, {"name": "I/O bottleneck LLM", "value": 30}, {"name": "TensorRT-LLM", "value": 30}, {"name": "inference framework", "value": 30}, {"name": "storage bandwidth LLM", "value": 30}, {"name": "disaggregated LLM", "value": 30}, {"name": "DeepSeek", "value": 30}, {"name": "Qwen", "value": 30}, {"name": "KV cache", "value": 30}, {"name": "attention cache", "value": 30}, {"name": "prefix cache", "value": 30}, {"name": "speculative decoding", "value": 30}, {"name": "quantization LLM", "value": 30}, {"name": "model compression inference", "value": 30}, {"name": "Navigation", "value": 30}, {"name": "Action", "value": 30}, {"name": "LoRA", "value": 30}, {"name": "Confidence", "value": 30}, {"name": "Inference Efficiency", "value": 30}, {"name": "Architecture", "value": 30}, {"name": "Diffusion Model", "value": 30}, {"name": "Tensor Parallelism", "value": 30}, {"name": "KV Cache", "value": 30}, {"name": "Future", "value": 30}, {"name": "Structure", "value": 30}, {"name": "Nature", "value": 30}, {"name": "Wafer-Scale Chips", "value": 20}, {"name": "Computing-in-Memory", "value": 20}, {"name": "Scheduling", "value": 20}, {"name": "Obfuscation", "value": 20}, {"name": "Compatibility", "value": 20}, {"name": "Abstraction", "value": 20}, {"name": "Priority", "value": 20}, {"name": "Estimation", "value": 20}, {"name": "Existence", "value": 20}, {"name": "ParEVO", "value": 20}, {"name": "Transition", "value": 20}, {"name": "Correctness", "value": 20}, {"name": "Green Software", "value": 15}, {"name": "Energy Modeling", "value": 15}, {"name": "LLM Benchmarks", "value": 15}, {"name": "In-Context Learning", "value": 15}, {"name": "RCA", "value": 15}];
+    myChart.setOption({
+      backgroundColor: '#161a23',
+      tooltip: {
+        show: true,
+        formatter: function(p) { return p.name + ': ' + p.value; }
+      },
+      series: [{
+        type: 'wordCloud',
+        shape: 'pentagon',
+        left: 'center',
+        top: 'center',
+        width: '95%',
+        height: '90%',
+        sizeRange: [14, 72],
+        rotationRange: [-45, 45],
+        rotationStep: 15,
+        gridSize: 8,
+        drawOutOfBound: false,
+        layoutAnimation: true,
+        textStyle: {
+          fontFamily: 'Space Grotesk, sans-serif',
+          fontWeight: 'bold',
+          color: function() {
+            var colors = [
+              '#4f8ef7','#a78bfa','#34d399','#f97316',
+              '#facc15','#38bdf8','#fb7185','#6ee7b7'
+            ];
+            return colors[Math.floor(Math.random() * colors.length)];
+          }
+        },
+        emphasis: {
+          focus: 'self',
+          textStyle: { shadowBlur: 10, shadowColor: '#4f8ef7' }
+        },
+        data: wcData
+      }]
+    });
+    window.addEventListener('resize', function() { myChart.resize(); });
+  }
+
+  // ---- Summary hover tooltip ----
+  var tooltip = document.getElementById('summary-tooltip');
+  var allShorts = document.querySelectorAll('.summary-short');
+  allShorts.forEach(function(el) {
+    el.addEventListener('mouseenter', function(e) {
+      var full = el.getAttribute('data-full');
+      if (!full) return;
+      tooltip.textContent = full;
+      tooltip.style.display = 'block';
+      positionTooltip(e);
+    });
+    el.addEventListener('mousemove', function(e) {
+      positionTooltip(e);
+    });
+    el.addEventListener('mouseleave', function() {
+      tooltip.style.display = 'none';
+    });
+  });
+
+  function positionTooltip(e) {
+    var x = e.clientX + 16;
+    var y = e.clientY + 16;
+    var tw = tooltip.offsetWidth || 420;
+    var th = tooltip.offsetHeight || 100;
+    if (x + tw > window.innerWidth - 10) x = e.clientX - tw - 10;
+    if (y + th > window.innerHeight - 10) y = e.clientY - th - 10;
+    tooltip.style.left = x + 'px';
+    tooltip.style.top = y + 'px';
+  }
+})();
+</script>
+</body>
+</html>
