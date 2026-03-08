@@ -1,0 +1,2379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Infra & 推理论文周报 · 2026-03-08 10:38</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #161a23;
+    --surface2: #1e2330;
+    --border: rgba(255,255,255,0.07);
+    --accent: #4f8ef7;
+    --accent2: #a78bfa;
+    --hot: #f97316;
+    --green: #34d399;
+    --text: #e2e8f0;
+    --text-muted: #64748b;
+    --text-dim: #94a3b8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    min-height: 100vh;
+    padding: 40px 20px 80px;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 10%, rgba(79,142,247,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(167,139,250,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-left h1 {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .header-left .subtitle {
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .header-right { text-align: right; }
+
+  .meta-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-family: 'Space Mono', monospace;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    margin-left: 8px;
+  }
+
+  .stats-bar {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  .stat-card {
+    flex: 1;
+    min-width: 140px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .stat-card .stat-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .stat-card .stat-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .section-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    margin-bottom: 40px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+
+  thead tr {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  thead th {
+    padding: 14px 16px;
+    text-align: left;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .paper-row {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.2s;
+  }
+
+  .paper-row:last-child { border-bottom: none; }
+  .paper-row:hover { background: rgba(79, 142, 247, 0.04); }
+
+  td {
+    padding: 14px 16px;
+    vertical-align: top;
+  }
+
+  .rank-cell {
+    width: 52px;
+    text-align: center;
+    padding-top: 16px;
+  }
+
+  .rank-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+
+  .paper-row:nth-child(1) .rank-num { color: #fbbf24; font-size: 1rem; }
+  .paper-row:nth-child(2) .rank-num { color: #94a3b8; font-size: 0.95rem; }
+  .paper-row:nth-child(3) .rank-num { color: #cd7c4a; font-size: 0.9rem; }
+
+  .title-cell {
+    min-width: 240px;
+    max-width: 300px;
+  }
+
+  .paper-title {
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 500;
+    line-height: 1.4;
+    display: block;
+    transition: color 0.2s;
+  }
+
+  .paper-title:hover {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* 摘要 hover tooltip */
+  .summary-cell {
+    min-width: 220px;
+    max-width: 300px;
+    color: var(--text-dim);
+    font-size: 0.83rem;
+    line-height: 1.7;
+    position: relative;
+  }
+
+  .summary-short {
+    cursor: help;
+    border-bottom: 1px dashed rgba(100,116,139,0.4);
+    display: inline;
+  }
+
+  .summary-hint {
+    display: block;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+    opacity: 0.7;
+  }
+
+  /* 自定义 tooltip 浮层 */
+  #summary-tooltip {
+    position: fixed;
+    z-index: 9999;
+    max-width: 420px;
+    background: #1e2330;
+    border: 1px solid rgba(79,142,247,0.3);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    pointer-events: none;
+    display: none;
+    word-break: break-word;
+  }
+
+  /* 搜索关键词展示区域 */
+  .search-kw-wrap {
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 16px 20px;
+    margin-bottom: 28px;
+  }
+  .search-kw-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .search-kw-row:last-child {
+    border-bottom: none;
+  }
+  .search-kw-topic {
+    flex-shrink: 0;
+    min-width: 120px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--accent);
+    padding-top: 3px;
+  }
+  .search-kw-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .search-kw-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: rgba(79,142,247,0.12);
+    border: 1px solid rgba(79,142,247,0.3);
+    color: #a0c4ff;
+    white-space: nowrap;
+  }
+
+  /* 词云 */
+  .wordcloud-wrap {
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    overflow: hidden;
+    margin-bottom: 40px;
+    padding: 8px;
+  }
+
+  .kw-cell {
+    min-width: 160px;
+    max-width: 200px;
+  }
+
+  .kw-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    margin: 2px 3px 2px 0;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    background: rgba(79,142,247,0.1);
+    border: 1px solid rgba(79,142,247,0.2);
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .affil-cell {
+    min-width: 100px;
+    color: var(--text-dim);
+    font-size: 0.82rem;
+  }
+
+  .hot-cell {
+    white-space: nowrap;
+    text-align: center;
+    min-width: 110px;
+  }
+
+  .hot-score {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--hot);
+  }
+
+  .hot-bar-bg {
+    width: 70px;
+    height: 4px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    margin: 4px auto 2px;
+    overflow: hidden;
+  }
+
+  .hot-bar {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  .hot-badges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 3px;
+    margin-top: 3px;
+  }
+
+  .fire-badge {
+    display: inline-block;
+    font-size: 0.68rem;
+    color: var(--hot);
+  }
+
+  .cite-badge {
+    display: inline-block;
+    font-size: 0.66rem;
+    color: #60a5fa;
+    background: rgba(96,165,250,0.12);
+    border-radius: 4px;
+    padding: 1px 5px;
+    cursor: default;
+  }
+
+  .inf-cite-badge {
+    display: inline-block;
+    font-size: 0.66rem;
+    color: #fbbf24;
+    background: rgba(251,191,36,0.12);
+    border-radius: 4px;
+    padding: 1px 5px;
+    cursor: default;
+  }
+
+  .hf-badge {
+    display: inline-block;
+    font-size: 0.66rem;
+    color: #34d399;
+    background: rgba(52,211,153,0.12);
+    border-radius: 4px;
+    padding: 1px 5px;
+    cursor: default;
+  }
+
+  .ver-badge {
+    display: inline-block;
+    font-size: 0.64rem;
+    color: #facc15;
+    background: rgba(250,204,21,0.1);
+    border-radius: 4px;
+    padding: 1px 5px;
+    cursor: default;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .date-cell {
+    white-space: nowrap;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    min-width: 80px;
+  }
+
+  /* 搜索关键词展示区域 */
+  .search-kw-wrap {
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 16px 20px;
+    margin-bottom: 28px;
+  }
+  .search-kw-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .search-kw-row:last-child {
+    border-bottom: none;
+  }
+  .search-kw-topic {
+    flex-shrink: 0;
+    min-width: 120px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--accent);
+    padding-top: 3px;
+  }
+  .search-kw-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .search-kw-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: rgba(79,142,247,0.12);
+    border: 1px solid rgba(79,142,247,0.3);
+    color: #a0c4ff;
+    white-space: nowrap;
+  }
+
+  /* 词云 */
+  .wordcloud-wrap {
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    overflow: hidden;
+    margin-bottom: 40px;
+    text-align: center;
+    padding: 8px;
+  }
+
+  .kw-cell {
+    min-width: 160px;
+    max-width: 200px;
+  }
+  .all-papers-wrap {
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    overflow: hidden;
+    margin-bottom: 40px;
+  }
+
+  .all-papers-wrap summary {
+    padding: 14px 20px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    background: var(--surface2);
+    user-select: none;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .all-papers-wrap summary::-webkit-details-marker { display: none; }
+
+  .all-papers-wrap summary::before {
+    content: '▶';
+    font-size: 0.65rem;
+    transition: transform 0.2s;
+  }
+
+  .all-papers-wrap[open] summary::before {
+    transform: rotate(90deg);
+  }
+
+  .all-papers-wrap summary:hover { color: var(--text); }
+
+  .all-papers-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+
+  .all-papers-table th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+
+  .all-papers-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  .all-papers-table tr:last-child td { border-bottom: none; }
+  .all-papers-table tr:hover td { background: rgba(79,142,247,0.03); }
+
+  .all-papers-table a {
+    color: var(--text-dim);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .all-papers-table a:hover {
+    color: var(--accent);
+    text-decoration: underline;
+  }
+
+  .formula-section {
+    margin-top: 40px;
+  }
+
+  .formula-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-top: 16px;
+  }
+
+  .formula-box {
+    background: rgba(79,142,247,0.06);
+    border: 1px solid rgba(79,142,247,0.2);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+  }
+
+  .formula-title {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .formula-expr {
+    font-size: 0.95rem;
+    color: var(--accent);
+    font-family: 'Space Mono', monospace;
+    line-height: 1.6;
+  }
+
+  .formula-note {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 6px;
+  }
+
+  .formula-dims {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .formula-dim {
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .dim-name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .dim-weight {
+    font-size: 0.82rem;
+    color: var(--accent2);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .dim-desc {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+    margin-top: 2px;
+  }
+
+  .formula-sources {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .formula-sources a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .footer {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 768px) {
+    body { padding: 16px 10px 60px; }
+    .header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .header-left h1 { font-size: 1.2rem; }
+    .header-right { width: 100%; display: flex; flex-wrap: wrap; gap: 6px; }
+    .meta-tag { margin-left: 0; }
+    .stats-bar { gap: 8px; }
+    .stat-card { min-width: calc(50% - 4px); padding: 12px 14px; }
+    .stat-card .stat-value { font-size: 1.3rem; }
+    /* 主表格：横滚 + 隐藏次要列 */
+    .table-wrap { border-radius: 10px; }
+    table { min-width: 480px; font-size: 0.82rem; }
+    thead th { padding: 10px 10px; }
+    td { padding: 10px 10px; }
+    /* 隐藏摘要、关键词、发布者列 */
+    .summary-cell, .kw-cell, .affil-cell { display: none; }
+    thead th:nth-child(3),
+    thead th:nth-child(4),
+    thead th:nth-child(5) { display: none; }
+    .title-cell { min-width: 180px; max-width: 220px; }
+    /* 词云 */
+    #wordcloud-chart { height: 220px !important; }
+    /* 搜索关键词区域 */
+    .search-kw-row { flex-direction: column; gap: 6px; }
+    .search-kw-topic { min-width: unset; }
+    /* 所有论文列表 */
+    .all-papers-table { min-width: 480px; font-size: 0.78rem; }
+    /* 公式区 */
+    .formula-dims { grid-template-columns: 1fr; }
+    .footer { flex-direction: column; gap: 4px; }
+  }
+
+  @media (max-width: 480px) {
+    .header-left h1 { font-size: 1rem; }
+    .stat-card { min-width: calc(50% - 4px); }
+    .stat-card .stat-value { font-size: 1.1rem; }
+    table { font-size: 0.76rem; }
+    .hot-score { font-size: 0.9rem; }
+    .hot-bar-bg { width: 50px; }
+  }
+
+  /* ── 顶会论文板块 ── */
+  .venue-meta {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin: -8px 0 20px;
+    line-height: 1.6;
+  }
+  .venue-src-link {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .venue-src-link:hover { text-decoration: underline; }
+
+  .venue-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(560px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+  }
+
+  .venue-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .venue-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+
+  .venue-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 6px;
+    border: 1px solid;
+    letter-spacing: 0.05em;
+  }
+
+  .venue-count {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  /* 表格横向滚动容器 */
+  .venue-table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .venue-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    min-width: 480px;
+  }
+
+  .venue-table thead tr {
+    background: rgba(255,255,255,0.02);
+  }
+
+  .venue-table th {
+    padding: 8px 12px;
+    text-align: left;
+    color: var(--text-muted);
+    font-weight: 500;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .venue-paper-row:hover { background: rgba(255,255,255,0.03); }
+
+  .venue-paper-row td {
+    padding: 8px 12px;
+    vertical-align: top;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .venue-paper-row:last-child td { border-bottom: none; }
+
+  .venue-title-cell { max-width: 320px; }
+
+  .venue-paper-link {
+    color: var(--text);
+    text-decoration: none;
+    line-height: 1.4;
+    display: block;
+  }
+  .venue-paper-link:hover { color: var(--accent); }
+
+  .venue-authors-cell {
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    max-width: 160px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .venue-year-cell {
+    color: var(--text-dim);
+    font-size: 0.72rem;
+    white-space: nowrap;
+  }
+
+  .venue-kw-cell { max-width: 180px; }
+
+  .venue-kw-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: rgba(79,142,247,0.12);
+    color: #7eb3ff;
+    border: 1px solid rgba(79,142,247,0.2);
+    margin: 2px 2px 2px 0;
+    white-space: nowrap;
+  }
+
+  .venue-score-cell {
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  .venue-heat-badge {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 5px;
+    white-space: nowrap;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .venue-heat-high {
+    background: rgba(249,115,22,0.15);
+    color: #fb923c;
+    border: 1px solid rgba(249,115,22,0.3);
+  }
+
+  .venue-heat-mid {
+    background: rgba(250,204,21,0.12);
+    color: #fbbf24;
+    border: 1px solid rgba(250,204,21,0.25);
+  }
+
+  .venue-heat-low {
+    background: rgba(100,116,139,0.12);
+    color: #94a3b8;
+    border: 1px solid rgba(100,116,139,0.2);
+  }
+
+  .venue-empty {
+    padding: 24px;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    text-align: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 32px;
+  }
+
+  @media (max-width: 768px) {
+    .venue-grid { grid-template-columns: 1fr; }
+    .venue-authors-cell { display: none; }
+    .venue-table th:nth-child(2) { display: none; }
+    .venue-title-cell { max-width: 200px; }
+    .venue-kw-cell { max-width: 120px; }
+  }
+
+  @media (max-width: 480px) {
+    .venue-table { font-size: 0.72rem; }
+    .venue-kw-badge { font-size: 0.6rem; padding: 1px 5px; }
+    .venue-card-header { padding: 10px 12px; }
+  }
+
+</style>
+</head>
+<body>
+<div id="summary-tooltip"></div>
+<div class="container">
+    <div class="header-left">
+      <h1>📚 AI Infra &amp; 推理论文周报</h1>
+      <p class="subtitle">vLLM · SGLang · DeepSeek · Qwen · LLM Inference · KV Cache · AI Infrastructure · Speculative Decoding</p>
+    </div>
+    <div class="header-right">
+      <span class="meta-tag">📅 2026-03-08 10:38</span>
+      <span class="meta-tag">⏱ 最近7天</span>
+    </div>
+  </header>
+
+  <div class="stats-bar">
+    <div class="stat-card">
+      <span class="stat-label">发现论文</span>
+      <span class="stat-value">44</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">精选 Top</span>
+      <span class="stat-value">10</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">监控主题</span>
+      <span class="stat-value">6</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">热度最高</span>
+      <span class="stat-value" style="font-size:1.1rem;color:var(--hot)">100分</span>
+    </div>
+  </div>
+
+  
+  <p class="section-title">🎓 顶会论文追踪 — 2026 / 2025 · 9 个会议 · 90 篇命中</p>
+  <div class="venue-meta">
+    数据来源 <a href="https://dblp.org" target="_blank" class="venue-src-link">DBLP</a>，
+    覆盖 OSDI · SOSP · NSDI · MLSys · ASPLOS · EuroSys · SIGMOD · VLDB · SIGCOMM，
+    关键词匹配基于 AI Infra 领域词典，每会议按热度最多显示 10 篇
+  </div>
+  <div class="venue-grid">
+    
+      <div class="venue-card">
+        <div class="venue-card-header">
+          <span class="venue-badge" style="background:#4f8ef720;color:#4f8ef7;border-color:#4f8ef740">OSDI</span>
+          <span class="venue-count">10 篇命中（按热度排序）</span>
+        </div>
+        <div class="venue-table-scroll">
+        <table class="venue-table">
+          <thead>
+            <tr>
+              <th>标题</th>
+              <th>作者</th>
+              <th>年份</th>
+              <th>命中关键词</th>
+              <th>热度分</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://www.usenix.org/conference/osdi25/presentation/wang-zheng" target="_blank" class="venue-paper-link">WLB-LLM: Workload-Balanced 4D Parallelism for Large Language Model Training.</a>
+          </td>
+          <td class="venue-authors-cell">Zheng Wang 0075, Anna Cai, Xinfeng Xie, Zaifeng Pan, Yue …</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Large Language Model</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">26分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://www.usenix.org/conference/osdi25/presentation/bhat" target="_blank" class="venue-paper-link">Low End-to-End Latency atop a Speculative Shared Log with Fix-Ante Ordering.</a>
+          </td>
+          <td class="venue-authors-cell">Shreesha G. Bhat, Tony Hong, Xuhao Luo, Jiyu Hu, Aishwary…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">ORDER</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">26分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://www.usenix.org/conference/osdi25/presentation/chai-xiaohu" target="_blank" class="venue-paper-link">Fork in the Road: Reflections and Optimizations for Cold Start Latency in Production Serverless Systems.</a>
+          </td>
+          <td class="venue-authors-cell">Xiaohu Chai, Tianyu Zhou, Keyang Hu, Jianfeng Tan, Tiwei …</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">And Optimization</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">26分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://www.usenix.org/conference/osdi25/presentation/he" target="_blank" class="venue-paper-link">WaferLLM: Large Language Model Inference at Wafer Scale.</a>
+          </td>
+          <td class="venue-authors-cell">Congjie He, Yeqi Huang, Pei Mu 0003, Ziming Miao, Jilong …</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Large Language Model</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">26分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://www.usenix.org/conference/osdi25/presentation/liu" target="_blank" class="venue-paper-link">Tiered Memory Management Beyond Hotness.</a>
+          </td>
+          <td class="venue-authors-cell">Jinshu Liu, Hamid Hadian, Hanchen Xu, Huaicheng Li</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Memory Management</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">26分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://www.usenix.org/conference/osdi25/presentation/park-yeonhong" target="_blank" class="venue-paper-link">DecDEC: A Systems Approach to Advancing Low-Bit LLM Quantization.</a>
+          </td>
+          <td class="venue-authors-cell">Yeonhong Park, Jake Hyun, Hojoon Kim, Jae W. Lee</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Llm Quantization</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">26分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://www.usenix.org/conference/osdi25/presentation/wang-xiaoyang" target="_blank" class="venue-paper-link">FineMem: Breaking the Allocation Overhead vs. Memory Waste Dilemma in Fine-Grained Disaggregated Memory Management.</a>
+          </td>
+          <td class="venue-authors-cell">Xiaoyang Wang, Yongkun Li 0001, Kan Wu, Wenzhe Zhu, Yuqi …</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Memory Management</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">26分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://www.usenix.org/conference/osdi25/presentation/wang-yun" target="_blank" class="venue-paper-link">To PRI or Not To PRI, That&apos;s the question.</a>
+          </td>
+          <td class="venue-authors-cell">Yun Wang 0039, Liang Chen, Jie Ji, Xianting Tian, Ben Luo…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">QUEST</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">26分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://www.usenix.org/conference/osdi25/presentation/wang-zhuang" target="_blank" class="venue-paper-link">ZEN: Empowering Distributed Training with Sparsity-driven Data Synchronization.</a>
+          </td>
+          <td class="venue-authors-cell">Zhuang Wang, Zhaozhuo Xu, Jingyi Xi, Yuke Wang, Anshumali…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Distributed Training</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">26分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://www.usenix.org/conference/osdi25/presentation/wu-yuanpei" target="_blank" class="venue-paper-link">OS Rendering Service Made Parallel with Out-of-Order Execution and In-Order Commit.</a>
+          </td>
+          <td class="venue-authors-cell">Yuanpei Wu, Chao Xu, Yubin Xia, Yang Yu, Ming Fu, Binyu Zang</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">ORDER</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">26分</span></td>
+        </tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+      <div class="venue-card">
+        <div class="venue-card-header">
+          <span class="venue-badge" style="background:#4f8ef720;color:#4f8ef7;border-color:#4f8ef740">SOSP</span>
+          <span class="venue-count">10 篇命中（按热度排序）</span>
+        </div>
+        <div class="venue-table-scroll">
+        <table class="venue-table">
+          <thead>
+            <tr>
+              <th>标题</th>
+              <th>作者</th>
+              <th>年份</th>
+              <th>命中关键词</th>
+              <th>热度分</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3731569.3764843" target="_blank" class="venue-paper-link">KTransformers: Unleashing the Full Potential of CPU/GPU Hybrid Inference for MoE Models.</a>
+          </td>
+          <td class="venue-authors-cell">Hongtao Chen, Weiyu Xie, Boxin Zhang, Jingqi Tang, Jiahao…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Transformer</span><span class="venue-kw-badge">MoE</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">26分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3731569.3764848" target="_blank" class="venue-paper-link">Mycroft: Tracing Dependencies in Collective Communication Towards Reliable LLM Training.</a>
+          </td>
+          <td class="venue-authors-cell">Yangtao Deng, Lei Zhang, Qinlong Wang, Xiaoyun Zhi, Xinle…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Llm Training</span><span class="venue-kw-badge">CIES</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">26分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3731569.3764834" target="_blank" class="venue-paper-link">PrefillOnly: An Inference Engine for Prefill-only Workloads in Large Language Model Applications.</a>
+          </td>
+          <td class="venue-authors-cell">Kuntai Du, Bowen Wang, Chen Zhang 0001, Yiming Cheng, Qin…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Large Language Model</span><span class="venue-kw-badge">Prefill</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">26分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3731569.3764839" target="_blank" class="venue-paper-link">Sailor: Automating Distributed Training over Dynamic, Heterogeneous, and Geo-distributed Clusters.</a>
+          </td>
+          <td class="venue-authors-cell">Foteini Strati, Zhendong Zhang 0004, George Manos, Ixeia …</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Distributed Training</span><span class="venue-kw-badge">SAIL</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">26分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3731569.3764810" target="_blank" class="venue-paper-link">DiffKV: Differentiated Memory Management for Large Language Models with Parallel KV Compaction.</a>
+          </td>
+          <td class="venue-authors-cell">Yanqi Zhang, Yuwei Hu, Runyuan Zhao, John C. S. Lui, Haib…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Large Language Model</span><span class="venue-kw-badge">Memory Management</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">26分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3731569.3764808" target="_blank" class="venue-paper-link">Characterizing Mobile SoC for Accelerating Heterogeneous LLM Inference.</a>
+          </td>
+          <td class="venue-authors-cell">Le Chen, Dahu Feng, Erhu Feng, Yingrui Wang, Rong Zhao, Y…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Llm Inference</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">26分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3731569.3764814" target="_blank" class="venue-paper-link">Pie: A Programmable Serving System for Emerging LLM Applications.</a>
+          </td>
+          <td class="venue-authors-cell">In Gim, Zhiyao Ma, SeungSeob Lee, Lin Zhong 0001</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Serving System</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">26分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3731569.3764852" target="_blank" class="venue-paper-link">FlexGuard: Fast Mutual Exclusion Independent of Subscription.</a>
+          </td>
+          <td class="venue-authors-cell">Victor Laforet, Sanidhya Kashyap, Calin Iorgulescu, Julia…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">FlexGuard</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">26分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3731569.3764850" target="_blank" class="venue-paper-link">TrainVerify: Equivalence-Based Verification for Distributed LLM Training.</a>
+          </td>
+          <td class="venue-authors-cell">Yunchi Lu, Youshan Miao, Cheng Tan 0005, Peng Huang 0005,…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Llm Training</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">26分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3731569.3764845" target="_blank" class="venue-paper-link">Coyote v2: Raising the Level of Abstraction for Data Center FPGAs.</a>
+          </td>
+          <td class="venue-authors-cell">Benjamin Ramhorst, Dario Korolija, Maximilian Jakob Heer,…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">FPGA</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">26分</span></td>
+        </tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+      <div class="venue-card">
+        <div class="venue-card-header">
+          <span class="venue-badge" style="background:#34d39920;color:#34d399;border-color:#34d39940">NSDI</span>
+          <span class="venue-count">10 篇命中（按热度排序）</span>
+        </div>
+        <div class="venue-table-scroll">
+        <table class="venue-table">
+          <thead>
+            <tr>
+              <th>标题</th>
+              <th>作者</th>
+              <th>年份</th>
+              <th>命中关键词</th>
+              <th>热度分</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://www.usenix.org/conference/nsdi25/presentation/yang" target="_blank" class="venue-paper-link">GPU-Disaggregated Serving for Deep Learning Recommendation Models at Scale.</a>
+          </td>
+          <td class="venue-authors-cell">Lingyun Yang, Yongchen Wang, Yinghao Yu, Qizhen Weng 0001…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Disaggregated Serving</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">25分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://www.usenix.org/conference/nsdi25/presentation/zhong" target="_blank" class="venue-paper-link">Optimizing RLHF Training for Large Language Models with Stage Fusion.</a>
+          </td>
+          <td class="venue-authors-cell">Yinmin Zhong, Zili Zhang, Bingyang Wu, Shengyu Liu, Yukun…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Large Language Model</span><span class="venue-kw-badge">RLHF</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">24分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://www.usenix.org/conference/nsdi25/presentation/gui" target="_blank" class="venue-paper-link">Accelerating Design Space Exploration for LLM Training Systems with Multi-experiment Parallel Simulation.</a>
+          </td>
+          <td class="venue-authors-cell">Fei Gui, Kaihui Gao, Li Chen 0008, Dan Li 0001, Vincent L…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Llm Training</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">24分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://www.usenix.org/conference/nsdi25/presentation/hu" target="_blank" class="venue-paper-link">Ladder: A Convergence-based Structured DAG Blockchain for High Throughput and Low Latency.</a>
+          </td>
+          <td class="venue-authors-cell">Dengcheng Hu, Jianrong Wang, Xiulong Liu 0001, Hao Xu 002…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">BLOCK</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">24分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://www.usenix.org/conference/nsdi25/presentation/jiang" target="_blank" class="venue-paper-link">Building an Elastic Block Storage over EBOFs Using Shadow Views.</a>
+          </td>
+          <td class="venue-authors-cell">Sheng Jiang, Ming Liu 0027</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">BLOCK</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">24分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://www.usenix.org/conference/nsdi25/presentation/liu-kexin" target="_blank" class="venue-paper-link">Pyrrha: Congestion-Root-Based Flow Control to Eliminate Head-of-Line Blocking in Datacenter.</a>
+          </td>
+          <td class="venue-authors-cell">Kexin Liu, Zhaochen Zhang, Chang Liu 0001, Yizhi Wang, Va…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">BLOCK</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">24分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://www.usenix.org/conference/nsdi25/presentation/ni" target="_blank" class="venue-paper-link">From Address Blocks to Authorized Prefixes: Redesigning RPKI ROV with a Hierarchical Hashing Scheme for Fast and Memory-Efficient Validation.</a>
+          </td>
+          <td class="venue-authors-cell">Zedong Ni, Yinbo Xu, Hui Zou, Yanbiao Li 0001, Guang Chen…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">BLOCK</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">24分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://www.usenix.org/conference/nsdi25/presentation/wang-xizheng-simai" target="_blank" class="venue-paper-link">SimAI: Unifying Architecture Design and Performance Tuning for Large-Scale Large Language Model Training with Scalability and Precision.</a>
+          </td>
+          <td class="venue-authors-cell">Xizheng Wang, Qingxu Li, Yichi Xu, Gang Lu, Dan Li 0001, …</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Large Language Model</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">24分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://www.usenix.org/conference/nsdi25/presentation/xie" target="_blank" class="venue-paper-link">Building Massive MIMO Baseband Processing on a Single-Node Supercomputer.</a>
+          </td>
+          <td class="venue-authors-cell">Xincheng Xie, Wentao Hou, Zerui Guo, Ming Liu 0027</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">MIMO</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">24分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://www.usenix.org/conference/nsdi25/presentation/xu-guanbin" target="_blank" class="venue-paper-link">AutoCCL: Automated Collective Communication Tuning for Accelerating Distributed and Parallel DNN Training.</a>
+          </td>
+          <td class="venue-authors-cell">Guanbin Xu, Zhihao Le, Yinhe Chen, Zhiqi Lin, Zewen Jin, …</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Dnn Training</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">24分</span></td>
+        </tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+      <div class="venue-card">
+        <div class="venue-card-header">
+          <span class="venue-badge" style="background:#f9731620;color:#f97316;border-color:#f9731640">MLSys</span>
+          <span class="venue-count">10 篇命中（按热度排序）</span>
+        </div>
+        <div class="venue-table-scroll">
+        <table class="venue-table">
+          <thead>
+            <tr>
+              <th>标题</th>
+              <th>作者</th>
+              <th>年份</th>
+              <th>命中关键词</th>
+              <th>热度分</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://openreview.net/forum?id=RuZ80yl71h" target="_blank" class="venue-paper-link">SampleAttention: Near-Lossless Acceleration of Long Context LLM Inference with Adaptive Structured Sparse Attention.</a>
+          </td>
+          <td class="venue-authors-cell">Qianchao Zhu, Jiangfei Duan, Chang Chen 0001, Siran Liu, …</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Sparse Attention</span><span class="venue-kw-badge">Llm Inference</span><span class="venue-kw-badge">Long Context</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">26分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://openreview.net/forum?id=1FfmStySS1" target="_blank" class="venue-paper-link">QServe: W4A8KV4 Quantization and System Co-design for Efficient LLM Serving.</a>
+          </td>
+          <td class="venue-authors-cell">Yujun Lin 0001, Haotian Tang, Shang Yang, Zhekai Zhang, G…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Efficient Llm</span><span class="venue-kw-badge">Quantization</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">25分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://openreview.net/forum?id=ou0AsNbXVG" target="_blank" class="venue-paper-link">Rethinking Key-Value Cache Compression Techniques for Large Language Model Serving.</a>
+          </td>
+          <td class="venue-authors-cell">Wei Gao 0064, Xinyu Zhou, Peng Sun 0006, Tianwei Zhang 00…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Large Language Model</span><span class="venue-kw-badge">Cache Compression</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">25分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://openreview.net/forum?id=rjQfX0YgDl" target="_blank" class="venue-paper-link">XGrammar: Flexible and Efficient Structured Generation Engine for Large Language Models.</a>
+          </td>
+          <td class="venue-authors-cell">Yixin Dong, Charlie F. Ruan, Yaxing Cai, Ziyi Xu, Yilong …</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Structured Generation</span><span class="venue-kw-badge">Large Language Model</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">25分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://openreview.net/forum?id=yLU1zRf95d" target="_blank" class="venue-paper-link">ReaL: Efficient RLHF Training of Large Language Models with Parameter Reallocation.</a>
+          </td>
+          <td class="venue-authors-cell">Zhiyu Mei, Wei Fu, Kaiwei Li, Guangju Wang, Huanchen Zhan…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Large Language Model</span><span class="venue-kw-badge">RLHF</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">25分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://openreview.net/forum?id=fsMImmI1TE" target="_blank" class="venue-paper-link">AI Metropolis: Scaling Large Language Model-based Multi-Agent Simulation with Out-of-order Execution.</a>
+          </td>
+          <td class="venue-authors-cell">Zhiqiang Xie, Hao Kang, Ying Sheng 0007, Tushar Krishna, …</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Large Language Model</span><span class="venue-kw-badge">ORDER</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">25分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://openreview.net/forum?id=KQ4pJFFqT1" target="_blank" class="venue-paper-link">LServe: Efficient Long-sequence LLM Serving with Unified Sparse Attention.</a>
+          </td>
+          <td class="venue-authors-cell">Shang Yang, Junxian Guo, Haotian Tang, Qinghao Hu 0004, G…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Sparse Attention</span><span class="venue-kw-badge">LLM Serving</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">25分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://openreview.net/forum?id=anZWBeWnWh" target="_blank" class="venue-paper-link">ScaleFusion: Scalable Inference of Spatial-Temporal Diffusion Transformers for High-Resolution Long Video Generation.</a>
+          </td>
+          <td class="venue-authors-cell">Jiacheng Yang, Jun Wu, Zhen Zhang 0063, Xinwei Fu, Zhiyin…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Video Generation</span><span class="venue-kw-badge">Transformer</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">25分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://openreview.net/forum?id=NHwZ039A90" target="_blank" class="venue-paper-link">Training Ultra Long Context Language Model with Fully Pipelined Distributed Transformer.</a>
+          </td>
+          <td class="venue-authors-cell">Jinghan Yao, Sam Ade Jacobs, Masahiro Tanaka, Olatunji Ru…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Long Context</span><span class="venue-kw-badge">Transformer</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">25分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://openreview.net/forum?id=I2LF8QHaua" target="_blank" class="venue-paper-link">Youmu: Efficient Columnar Data Pipeline for LLM Training.</a>
+          </td>
+          <td class="venue-authors-cell">Tianle Zhong, Jiechen Zhao 0002, Qiang Su, Geoffrey Fox</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Pipeline For</span><span class="venue-kw-badge">Llm Training</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">25分</span></td>
+        </tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+      <div class="venue-card">
+        <div class="venue-card-header">
+          <span class="venue-badge" style="background:#a78bfa20;color:#a78bfa;border-color:#a78bfa40">ASPLOS</span>
+          <span class="venue-count">10 篇命中（按热度排序）</span>
+        </div>
+        <div class="venue-table-scroll">
+        <table class="venue-table">
+          <thead>
+            <tr>
+              <th>标题</th>
+              <th>作者</th>
+              <th>年份</th>
+              <th>命中关键词</th>
+              <th>热度分</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3760250.3762222" target="_blank" class="venue-paper-link">cuJSON: A Highly Parallel JSON Parser for GPUs.</a>
+          </td>
+          <td class="venue-authors-cell">Ashkan Vedadi Gargary, Soroosh Safari Loaliyan, Zhijia Zh…</td>
+          <td class="venue-year-cell">2026</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">JSON</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">32分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3760250.3762217" target="_blank" class="venue-paper-link">SuperOffload: Unleashing the Power of Large-Scale LLM Training on Superchips.</a>
+          </td>
+          <td class="venue-authors-cell">Xinyu Lian, Masahiro Tanaka, Olatunji Ruwase, Minjia Zhang</td>
+          <td class="venue-year-cell">2026</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Llm Training</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">32分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3760250.3762220" target="_blank" class="venue-paper-link">MoDM: Efficient Serving for Image Generation via Mixture-of-Diffusion Models.</a>
+          </td>
+          <td class="venue-authors-cell">Yuchen Xia, Divyam Sharma, Yichao Yuan, Souvik Kundu 0002…</td>
+          <td class="venue-year-cell">2026</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Image Generation</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">32分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3669940.3707220" target="_blank" class="venue-paper-link">GraphPipe: Improving Performance and Scalability of DNN Training with Graph Pipeline Parallelism.</a>
+          </td>
+          <td class="venue-authors-cell">Byungsoo Jeon, Mengdi Wu, Shiyi Cao, Sunghyun Kim, Sunghy…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Pipeline Parallelism</span><span class="venue-kw-badge">Dnn Training</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">23分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3676641.3715996" target="_blank" class="venue-paper-link">POD-Attention: Unlocking Full Prefill-Decode Overlap for Faster LLM Inference.</a>
+          </td>
+          <td class="venue-authors-cell">Aditya K. Kamath, Ramya Prabhu, Jayashree Mohan, Simon Pe…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Llm Inference</span><span class="venue-kw-badge">Prefill</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">23分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3669940.3707287" target="_blank" class="venue-paper-link">Mint: Cost-Efficient Tracing with All Requests Collection via Commonality and Variability Analysis.</a>
+          </td>
+          <td class="venue-authors-cell">Haiyu Huang 0002, Cheng Chen 0056, Kunyi Chen, Pengfei Ch…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">QUEST</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">22分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3669940.3707224" target="_blank" class="venue-paper-link">PipeLLM: Fast and Confidential Large Language Model Services with Speculative Pipelined Encryption.</a>
+          </td>
+          <td class="venue-authors-cell">Yifan Tan, Cheng Tan 0005, Zeyu Mi, Haibo Chen 0001</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Large Language Model</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">22分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3676641.3716250" target="_blank" class="venue-paper-link">Cascade: A Dependency-aware Efficient Training Framework for Temporal Graph Neural Network.</a>
+          </td>
+          <td class="venue-authors-cell">Yue Dai 0005, Xulong Tang, Youtao Zhang</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Efficient Training</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">22分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3669940.3707267" target="_blank" class="venue-paper-link">MoE-Lightning: High-Throughput MoE Inference on Memory-constrained GPUs.</a>
+          </td>
+          <td class="venue-authors-cell">Shiyi Cao, Shu Liu, Tyler Griggs, Peter Schafhalter, Xiao…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">MoE</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">22分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3669940.3707247" target="_blank" class="venue-paper-link">Instruction-Aware Cooperative TLB and Cache Replacement Policies.</a>
+          </td>
+          <td class="venue-authors-cell">Dimitrios Chasapis, Georgios Vavouliotis, Daniel A. Jimén…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">CIES</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">22分</span></td>
+        </tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+      <div class="venue-card">
+        <div class="venue-card-header">
+          <span class="venue-badge" style="background:#a78bfa20;color:#a78bfa;border-color:#a78bfa40">EuroSys</span>
+          <span class="venue-count">10 篇命中（按热度排序）</span>
+        </div>
+        <div class="venue-table-scroll">
+        <table class="venue-table">
+          <thead>
+            <tr>
+              <th>标题</th>
+              <th>作者</th>
+              <th>年份</th>
+              <th>命中关键词</th>
+              <th>热度分</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3689031.3717461" target="_blank" class="venue-paper-link">Mist: Efficient Distributed Training of Large Language Models via Memory-Parallelism Co-Optimization.</a>
+          </td>
+          <td class="venue-authors-cell">Zhanda Zhu, Christina Giannoula, Muralidhar Andoorveedu, …</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Distributed Training</span><span class="venue-kw-badge">Large Language Model</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">22分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3689031.3717467" target="_blank" class="venue-paper-link">Hourglass: Enabling Efficient Split Federated Learning with Data Parallelism.</a>
+          </td>
+          <td class="venue-authors-cell">Qiang He 0001, Kaibin Wang, Zeqian Dong, Liang Yuan, Feif…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Federated Learning</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">22分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3689031.3717460" target="_blank" class="venue-paper-link">Groot: Graph-Centric Row Reordering with Tree for Sparse Matrix Multiplications on Tensor Cores.</a>
+          </td>
+          <td class="venue-authors-cell">YuAng Chen, Jiadong Xie 0002, Siyi Teng, Wenqi Zeng, Jeff…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">ORDER</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">22分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3689031.3717471" target="_blank" class="venue-paper-link">PET: Proactive Demotion for Efficient Tiered Memory Management.</a>
+          </td>
+          <td class="venue-authors-cell">Wanju Doh, Yaebin Moon, Seoyoung Ko, Seunghwan Chung, Kwa…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Memory Management</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">22分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3689031.3717481" target="_blank" class="venue-paper-link">SpInfer: Leveraging Low-Level Sparsity for Efficient Large Language Model Inference on GPUs.</a>
+          </td>
+          <td class="venue-authors-cell">Ruibo Fan, Xiangrui Yu, Peijie Dong, Zeyu Li, Gu Gong, Qi…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Large Language Model</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">22分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3689031.3696072" target="_blank" class="venue-paper-link">Fast State Restoration in LLM Serving with HCache.</a>
+          </td>
+          <td class="venue-authors-cell">Shiwei Gao, Youmin Chen, Jiwu Shu</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">LLM Serving</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">22分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3689031.3696063" target="_blank" class="venue-paper-link">ParallelEVM: Operation-Level Concurrent Transaction Execution for EVM-Compatible Blockchains.</a>
+          </td>
+          <td class="venue-authors-cell">Haoran Lin, Hang Feng, Yajin Zhou, Lei Wu 0012</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">BLOCK</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">22分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3689031.3696102" target="_blank" class="venue-paper-link">Ladon: High-Performance Multi-BFT Consensus via Dynamic Global Ordering.</a>
+          </td>
+          <td class="venue-authors-cell">Hanzheng Lyu, Shaokang Xie, Jianyu Niu, Chen Feng 0001, Y…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">ORDER</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">22分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3689031.3696069" target="_blank" class="venue-paper-link">Multi-Grained Specifications for Distributed System Model Checking and Verification.</a>
+          </td>
+          <td class="venue-authors-cell">Lingzhi Ouyang, Xudong Sun 0013, Ruize Tang, Yu Huang 000…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Model Checking</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">22分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3689031.3696075" target="_blank" class="venue-paper-link">HybridFlow: A Flexible and Efficient RLHF Framework.</a>
+          </td>
+          <td class="venue-authors-cell">Guangming Sheng, Chi Zhang 0022, Zilingfeng Ye, Xibin Wu,…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">RLHF</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">22分</span></td>
+        </tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+      <div class="venue-card">
+        <div class="venue-card-header">
+          <span class="venue-badge" style="background:#facc1520;color:#facc15;border-color:#facc1540">SIGMOD</span>
+          <span class="venue-count">10 篇命中（按热度排序）</span>
+        </div>
+        <div class="venue-table-scroll">
+        <table class="venue-table">
+          <thead>
+            <tr>
+              <th>标题</th>
+              <th>作者</th>
+              <th>年份</th>
+              <th>命中关键词</th>
+              <th>热度分</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3725338" target="_blank" class="venue-paper-link">PQCache: Product Quantization-based KVCache for Long Context LLM Inference.</a>
+          </td>
+          <td class="venue-authors-cell">Hailin Zhang 0004, Xiaodong Ji, Yilin Chen, Fangcheng Fu,…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Llm Inference</span><span class="venue-kw-badge">Quantization</span><span class="venue-kw-badge">Long Context</span><span class="venue-kw-badge">KVCache</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">24分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3749168" target="_blank" class="venue-paper-link">HotPrefix: Hotness-Aware KV Cache Scheduling for Efficient Prefix Sharing in LLM Inference Systems.</a>
+          </td>
+          <td class="venue-authors-cell">Yuhang Li 0002, Rong Gu 0001, Chengying Huan, Zhibin Wang…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Llm Inference</span><span class="venue-kw-badge">KV Cache</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">22分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3725394" target="_blank" class="venue-paper-link">Apt-Serve: Adaptive Request Scheduling on Hybrid Cache for Scalable LLM Inference Serving.</a>
+          </td>
+          <td class="venue-authors-cell">Shihong Gao, Xin Zhang 0101, Yanyan Shen, Lei Chen 0002</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Llm Inference</span><span class="venue-kw-badge">QUEST</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">21分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3709661" target="_blank" class="venue-paper-link">AquaPipe: A Quality-Aware Pipeline for Knowledge Retrieval and Large Language Models.</a>
+          </td>
+          <td class="venue-authors-cell">Runjie Yu, Weizhou Huang, Shuhan Bai, Jian Zhou 0004, Fei…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Large Language Model</span><span class="venue-kw-badge">Pipeline For</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">21分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3709703" target="_blank" class="venue-paper-link">MEMO: Fine-grained Tensor Management For Ultra-long Context LLM Training.</a>
+          </td>
+          <td class="venue-authors-cell">Pinxue Zhao, Hailin Zhang 0004, Fangcheng Fu, Xiaonan Nie…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Llm Training</span><span class="venue-kw-badge">Long Context</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">21分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3722212.3725140" target="_blank" class="venue-paper-link">UNITQA: A Unified Automated Tabular Question Answering System with Multi-Agent Large Language Models.</a>
+          </td>
+          <td class="venue-authors-cell">Jun-Peng Zhu, Peng Cai 0001, Kai Xu 0003, Li Li, Yishen S…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Large Language Model</span><span class="venue-kw-badge">QUEST</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">21分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3749159" target="_blank" class="venue-paper-link">BEE: Towards Redundancy Reduction via Block-Separator Decomposition for Subgraph Matching.</a>
+          </td>
+          <td class="venue-authors-cell">Zhijie Zhang 0004, Weiguo Zheng</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">BLOCK</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">20分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3725273" target="_blank" class="venue-paper-link">Cache-Craft: Managing Chunk-Caches for Efficient Retrieval-Augmented Generation.</a>
+          </td>
+          <td class="venue-authors-cell">Shubham Agarwal 0007, Sai Sundaresan, Subrata Mitra, Deba…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Augmented Generation</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">20分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3725341" target="_blank" class="venue-paper-link">PrivPetal: Relational Data Synthesis via Permutation Relations.</a>
+          </td>
+          <td class="venue-authors-cell">Kuntai Cai, Xiaokui Xiao, Yin Yang 0001</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Data Synthesis</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">20分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3709710" target="_blank" class="venue-paper-link">Optimizing Block Skipping for High-Dimensional Data with Learned Adaptive Curve.</a>
+          </td>
+          <td class="venue-authors-cell">Xu Chen 0023, Shuncheng Liu 0001, Tong Yuan, Tao Ye, Kai …</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">BLOCK</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">20分</span></td>
+        </tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+      <div class="venue-card">
+        <div class="venue-card-header">
+          <span class="venue-badge" style="background:#facc1520;color:#facc15;border-color:#facc1540">VLDB</span>
+          <span class="venue-count">10 篇命中（按热度排序）</span>
+        </div>
+        <div class="venue-table-scroll">
+        <table class="venue-table">
+          <thead>
+            <tr>
+              <th>标题</th>
+              <th>作者</th>
+              <th>年份</th>
+              <th>命中关键词</th>
+              <th>热度分</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://www.vldb.org/pvldb/vol18/p3559-zhou.pdf" target="_blank" class="venue-paper-link">PS-MI: Accurate, Efficient, and Private Data Valuation in Vertical Federated Learning.</a>
+          </td>
+          <td class="venue-authors-cell">Xiaokai Zhou, Xiao Yan 0002, Fangcheng Fu, Ziwen Fu, Tiey…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Federated Learning</span><span class="venue-kw-badge">Data Valuation</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">21分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://www.vldb.org/pvldb/vol18/p3269-cao.pdf" target="_blank" class="venue-paper-link">LEGO-GraphRAG: Modularizing Graph-based Retrieval-Augmented Generation for Design Space Exploration.</a>
+          </td>
+          <td class="venue-authors-cell">Yukun Cao, Zengyi Gao, Zhiyang Li, Xike Xie, S. Kevin Zho…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Augmented Generation</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">20分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://www.vldb.org/pvldb/vol18/p3435-chakraborty.pdf" target="_blank" class="venue-paper-link">Meaningful Data Erasure in the Presence of Dependencies.</a>
+          </td>
+          <td class="venue-authors-cell">Vishal Chakraborty, Youri Kaminsky, Sharad Mehrotra, Feli…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">CIES</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">20分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://www.vldb.org/pvldb/vol18/p2735-ozcan.pdf" target="_blank" class="venue-paper-link">Is Long Context All You Need? Leveraging LLM&apos;s Extended Context for NL2SQL.</a>
+          </td>
+          <td class="venue-authors-cell">Yeounoh Chung, Gaurav Tarlok Kakkar, Yu Gan, Brenton Miln…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Long Context</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">20分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://www.vldb.org/pvldb/vol18/p2399-cormode.pdf" target="_blank" class="venue-paper-link">Federated Data Shift Distance Estimation.</a>
+          </td>
+          <td class="venue-authors-cell">Graham Cormode, Daniel Ting</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">DistAnce</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">20分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://www.vldb.org/pvldb/vol18/p4737-d%27ascenzo.pdf" target="_blank" class="venue-paper-link">Enhancing Graph Edit Distance Computation: Stronger and Orientation-based ILP Formulations.</a>
+          </td>
+          <td class="venue-authors-cell">Andrea D&apos;Ascenzo, Julian Meffert, Petra Mutzel, Fabr…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">DistAnce</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">20分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://www.vldb.org/pvldb/vol18/p4117-wang.pdf" target="_blank" class="venue-paper-link">UniClean: A Scalable Data Cleaning Solution for Mixed Errors based on Unified Cleaners and Optimized Cleaning Workflow.</a>
+          </td>
+          <td class="venue-authors-cell">Xiaoou Ding, Zekai Qian, Hongzhi Wang 0001, Siying Chen, …</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Data Cleaning</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">20分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://www.vldb.org/pvldb/vol18/p3504-fan.pdf" target="_blank" class="venue-paper-link">AutoPrep: Natural Language Question-Aware Data Preparation with a Multi-Agent Framework.</a>
+          </td>
+          <td class="venue-authors-cell">Meihao Fan, Ju Fan, Nan Tang 0001, Lei Cao 0004, Guoliang…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">QUEST</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">20分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://www.vldb.org/pvldb/vol18/p4410-huang.pdf" target="_blank" class="venue-paper-link">ThriftLLM: On Cost-Effective Selection of Large Language Models for Classification Queries.</a>
+          </td>
+          <td class="venue-authors-cell">Keke Huang, Yimin Shi 0001, Dujian Ding, Yifei Li, Yang F…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Large Language Model</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">20分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://www.vldb.org/pvldb/vol18/p4938-carey.pdf" target="_blank" class="venue-paper-link">Cloudy With a Chance of JSON.</a>
+          </td>
+          <td class="venue-authors-cell">Murtadha Al Hubail, Ali Alsuliman, Wail Y. Alkowaileet, M…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">JSON</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">20分</span></td>
+        </tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+      <div class="venue-card">
+        <div class="venue-card-header">
+          <span class="venue-badge" style="background:#34d39920;color:#34d399;border-color:#34d39940">SIGCOMM</span>
+          <span class="venue-count">10 篇命中（按热度排序）</span>
+        </div>
+        <div class="venue-table-scroll">
+        <table class="venue-table">
+          <thead>
+            <tr>
+              <th>标题</th>
+              <th>作者</th>
+              <th>年份</th>
+              <th>命中关键词</th>
+              <th>热度分</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3718958.3750509" target="_blank" class="venue-paper-link">SCX: Stateless KV-Cache Encoding for Cloud-Scale Confidential Transformer Serving.</a>
+          </td>
+          <td class="venue-authors-cell">Mu Yuan, Lan Zhang 0002, Liekang Zeng, Siyang Jiang, Bufa…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Transformer</span><span class="venue-kw-badge">KV-Cache</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">26分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3718958.3750481" target="_blank" class="venue-paper-link">HACK: Homomorphic Acceleration via Compression of the Key-Value Cache for Disaggregated LLM Inference.</a>
+          </td>
+          <td class="venue-authors-cell">Zeyu Zhang 0005, Haiying Shen, Shay Vargaftik, Ran Ben Ba…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Disaggregated Llm</span><span class="venue-kw-badge">Key-Value Cache</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">24分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3718958.3750472" target="_blank" class="venue-paper-link">DistTrain: Addressing Model and Data Heterogeneity with Disaggregated Training for Multimodal Large Language Models.</a>
+          </td>
+          <td class="venue-authors-cell">Zili Zhang, Yinmin Zhong, Yimin Jiang, Hanpeng Hu, Jianji…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Large Language Model</span><span class="venue-kw-badge">Data Heterogeneity</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">24分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3718958.3750521" target="_blank" class="venue-paper-link">Astral: A Datacenter Infrastructure for Large Language Model Training at Scale.</a>
+          </td>
+          <td class="venue-authors-cell">Qingkai Meng 0001, Hao Zheng, Zhenhui Zhang, ChonLam Lao,…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Large Language Model</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">24分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3744969.3748426" target="_blank" class="venue-paper-link">Using Blockchain for Enhanced Inter-MNO Authentication in B5G and 6G Networks.</a>
+          </td>
+          <td class="venue-authors-cell">Nischal Aryal, Fariba Ghaffari, Emmanuel Bertin, Noël Crespi</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">BLOCK</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">24分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3744969.3748395" target="_blank" class="venue-paper-link">A Lightweight Emulation Framework for Energy-Aware Federated Learning.</a>
+          </td>
+          <td class="venue-authors-cell">Johann J. S. Bastos, João Batista, Ramon R. Fontes, Eduar…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Federated Learning</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">24分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3744969.3748413" target="_blank" class="venue-paper-link">NEBULA - Decentralized Federated Learning for Heterogeneous Networks.</a>
+          </td>
+          <td class="venue-authors-cell">Enrique Tomás Martínez Beltrán, Gérôme Bovet, Gregorio Ma…</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Federated Learning</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">24分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3744969.3748418" target="_blank" class="venue-paper-link">Federated Inference: Towards Collaborative and Privacy-Preserving Inference over Edge Devices.</a>
+          </td>
+          <td class="venue-authors-cell">Boyu Fan, Xiang Su 0001, Sasu Tarkoma, Pan Hui 0001</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Federated Inference</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">24分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3744969.3748417" target="_blank" class="venue-paper-link">Distributed Quantum Computing Across Heterogeneous Hardware with Hybrid Dependency Hypergraphs.</a>
+          </td>
+          <td class="venue-authors-cell">Maria Gragera Garces, Chris Heunen, Mahesh K. Marina</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Distributed Quantum</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">24分</span></td>
+        </tr>
+        <tr class="venue-paper-row">
+          <td class="venue-title-cell">
+            <a href="https://doi.org/10.1145/3718958.3754352" target="_blank" class="venue-paper-link">ByteScale: Communication-Efficient Scaling of LLM Training with a 2048K Context Length on 16384 GPUs.</a>
+          </td>
+          <td class="venue-authors-cell">Hao Ge, Junda Feng, Qi Huang, Fangcheng Fu, Xiaonan Nie, …</td>
+          <td class="venue-year-cell">2025</td>
+          <td class="venue-kw-cell"><span class="venue-kw-badge">Llm Training</span></td>
+          <td class="venue-score-cell"><span class="venue-heat-badge venue-heat-low">24分</span></td>
+        </tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+  </div>
+
+
+  <p class="section-title">🏆 本周热门论文 Top 10 — 综合热度排名</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>排名</th>
+          <th>标题</th>
+          <th>摘要</th>
+          <th>关键词</th>
+          <th>发布者</th>
+          <th>热度分 (0-100)</th>
+          <th>发布日期</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#1</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.04379v1" target="_blank" class="paper-title">Helios: Real Real-Time Long Video Generation Model</a>
+            </td>
+            <td class="summary-cell">
+                <span class="summary-short" data-full="We introduce Helios, the first 14B video generation model that runs at 19.5 FPS on a single NVIDIA H100 GPU and supports minute-scale generation while matching the quality of a strong baseline. We make breakthroughs along three key dimensions: (1) robustness to long-video drifting without commonly used anti-drifting heuristics such as self-forcing, error-banks, or keyframe sampling; (2) real-time generation without standard acceleration techniques such as KV-cache, sparse/linear attention, or quantization; and (3) training without parallelism or sharding frameworks, enabling image-diffusion-scale batch sizes while fitting up to four 14B models within 80 GB of GPU memory. Specifically, Helios is a 14B autoregressive diffusion model with a unified input representation that natively supports T2V, I2V, and V2V tasks. To mitigate drifting in long-video generation, we characterize typical failure modes and propose simple yet effective training strategies that explicitly simulate drifting during training, while eliminating repetitive motion at its source. For efficiency, we heavily compress the historical and noisy context and reduce the number of sampling steps, yielding computational costs comparable to -- or lower than -- those of 1.3B video generative models. Moreover, we introduce infrastructure-level optimizations that accelerate both inference and training while reducing memory consumption. Extensive experiments demonstrate that Helios consistently outperforms prior methods on both short- and long-video generation. We plan to release the code, base model, and distilled model to support further development by the community.">我们推出了 Helios，这是第一个 14B 视频生成模型，它在单个 NVIDIA H100 GPU 上以 19.5 FPS 运行，支持分钟级生成，同时匹配强大基线的质量。我们在三个关键维度上取得了突破：（1）对长视频漂移的鲁棒性，无需常用的反漂移启发式方法，例如自我强迫，</span>
+                <span class="summary-hint">🔍 hover查看英文原文</span>
+            </td>
+            <td class="kw-cell"><span class="kw-badge">Verification</span><span class="kw-badge">Inference</span><span class="kw-badge">Quantization</span><span class="kw-badge">Large Language Model</span><span class="kw-badge">Speculative Decoding</span><span class="kw-badge">Speculative Decoding</span></td>
+            <td class="affil-cell">NVIDIA</td>
+            <td class="hot-cell">
+                <span class="hot-score">38</span>
+                <div class="hot-bar-bg"><div class="hot-bar" style="width:38%;background:#4f8ef7"></div></div>
+                <div class="hot-badges"><span class="hf-badge" title="Hugging Face 社区点赞数">👍 133</span></div>
+            </td>
+            <td class="date-cell">2026-03-04</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#2</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.05504v1" target="_blank" class="paper-title">RoboPocket: Improve Robot Policies Instantly with Your Phone</a>
+            </td>
+            <td class="summary-cell">
+                <span class="summary-short" data-full="Scaling imitation learning is fundamentally constrained by the efficiency of data collection. While handheld interfaces have emerged as a scalable solution for in-the-wild data acquisition, they predominantly operate in an open-loop manner: operators blindly collect demonstrations without knowing the underlying policy’s weaknesses, leading to inefficient coverage of critical state distributions. Conversely, interactive methods like DAgger effectively address covariate shift but rely on physical robot execution, which is costly and difficult to scale. To reconcile this trade-off, we introduce RoboPocket, a portable system that enables Robot-Free Instant Policy Iteration using single consumer smartphones. Its core innovation is a Remote Inference framework that visualizes the policy’s predicted trajectory via Augmented Reality (AR) Visual Foresight . This immersive feedback allows collectors to proactively identify potential failures and focus data collection on the policy’s weak regions without requiring a physical robot. Furthermore, we implement an asynchronous Online Finetuning pipeline that continuously updates the policy with incoming data, effectively closing the learning loop in minutes. Extensive experiments demonstrate that RoboPocket adheres to data scaling laws and doubles the data efficiency compared to offline scaling strategies, overcoming their long-standing efficiency bottleneck. Moreover, our instant iteration loop also boosts sample efficiency by up to 2 × \times in distributed environments a small number of interactive corrections per person. Project page and videos: robo-pocket.github.io .">模仿学习的规模化从根本上受到数据收集效率的限制。虽然手持接口已成为野外数据采集的可扩展解决方案，但它们主要以开环方式运行：操作员盲目收集演示数据而不了解底层策略的弱点，导致效率低下。</span>
+                <span class="summary-hint">🔍 hover查看英文原文</span>
+            </td>
+            <td class="kw-cell"><span class="kw-badge">Verification</span><span class="kw-badge">Inference</span><span class="kw-badge">Quantization</span><span class="kw-badge">Large Language Model</span><span class="kw-badge">Speculative Decoding</span><span class="kw-badge">Speculative Decoding</span></td>
+            <td class="affil-cell">Junjie Fang</td>
+            <td class="hot-cell">
+                <span class="hot-score">29</span>
+                <div class="hot-bar-bg"><div class="hot-bar" style="width:29%;background:#4f8ef7"></div></div>
+                <div class="hot-badges"><span class="hf-badge" title="Hugging Face 社区点赞数">👍 30</span></div>
+            </td>
+            <td class="date-cell">2026-03-05</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#3</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.04716v1" target="_blank" class="paper-title">SLO-Aware Compute Resource Allocation for Prefill-Decode Disaggregated LLM Inference</a>
+            </td>
+            <td class="summary-cell">
+                <span class="summary-short" data-full="Prefill-Decode (P/D) disaggregation has emerged as a widely adopted optimization strategy for Large Language Model (LLM) inference. However, there currently exists no well-established methodology for determining the optimal number of P/D hardware resources, subject to constraints on total throughput, service level objectives (SLOs), and request characteristics - specifically input and output lengths. To address this gap, we propose a hybrid approach that combines theoretical modeling with empirical benchmarking. First, we present a theoretical model for calculating P/D resource counts, which is based on total throughput requirements, request input and output lengths, as well as prefill and decode throughput. Then, to obtain the actual prefill and decode throughput under SLO constraints, we model the prefill process using M/M/1 queuing theory, deriving the achieved prefill throughput from the benchmarked maximum prefill throughput and Time-To-First-Token (TTFT). For the decode phase, we determine the decode batch sizes that meet Time-Per-Output-Token (TPOT) requirements and obtain the corresponding decode throughput through empirical measurements. Our experimental results demonstrate that the proposed method can accurately predict optimal P/D resource allocation in real-world LLM inference scenarios.">预填充-解码（P/D）解耦已成为大型语言模型（LLM）推理中广泛采用的优化策略。然而，目前尚缺乏成熟的方法来确定P/D硬件资源的最优数量，该数量需在总吞吐量、服务水平目标（SLOs）和请求特性等约束条件下进行优化。</span>
+                <span class="summary-hint">🔍 hover查看英文原文</span>
+            </td>
+            <td class="kw-cell"><span class="kw-badge">Verification</span><span class="kw-badge">Inference</span><span class="kw-badge">Quantization</span><span class="kw-badge">Large Language Model</span><span class="kw-badge">Speculative Decoding</span><span class="kw-badge">Speculative Decoding</span></td>
+            <td class="affil-cell">Luchang Li</td>
+            <td class="hot-cell">
+                <span class="hot-score">16</span>
+                <div class="hot-bar-bg"><div class="hot-bar" style="width:16%;background:#4f8ef7"></div></div>
+                <div class="hot-badges"><span class="fire-badge">🔥×2</span></div>
+            </td>
+            <td class="date-cell">2026-03-05</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#4</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.05232v1" target="_blank" class="paper-title">SlideSparse: Fast and Flexible (2N-2):2N Structured Sparsity</a>
+            </td>
+            <td class="summary-cell">
+                <span class="summary-short" data-full="NVIDIA’s 2:4 Sparse Tensor Cores deliver 2 × 2\times throughput but demand strict 50% pruning—a ratio that collapses LLM reasoning accuracy (Qwen3: 54% → \to 15%). Milder ( 2 ​ N − 2 ) : 2 ​ N (2N{-}2){:}2N patterns (e.g., 6:8, 25% pruning) preserve accuracy yet receive NO hardware support, falling back to dense execution without receiving any benefits from sparsity. We present SlideSparse , the first system to unlock Sparse Tensor Core acceleration for the ( 2 ​ N − 2 ) : 2 ​ N (2N{-}2){:}2N model family on commodity GPUs. Our Sliding Window Decomposition reconstructs any ( 2 ​ N − 2 ) : 2 ​ N (2N{-}2){:}2N Weight block into N − 1 N{-}1 overlapping 2:4-compliant windows without any accuracy loss; In addition, our Activation Lifting fuses the corresponding activation rearrangement into per-token quantization at near-zero cost. Integrated into vLLM, SlideSparse is evaluated across various GPUs (A100, H100, B200, RTX 4090, RTX 5080, DGX-spark), precisions (FP4, INT8, FP8, BF16, FP16), and model families (Llama, Qwen, BitNet). On compute-bound workloads, the measured speedup ratio ( 1.33 × 1.33\times ) approaches the theoretical upper-bound N / ( N − 1 ) = 4 / 3 N/(N{-}1)=4/3 at 6:8 weight sparsity in Qwen2.5-7B, establishing ( 2 ​ N − 2 ) : 2 ​ N (2N{-}2){:}2N as a practical path to accuracy-preserving LLM acceleration. Code available at https://github.com/bcacdwk/vllmbench .">NVIDIA的2:4稀疏张量核心提供2倍吞吐量但要求严格的50%剪枝——这一比例会导致LLM推理精度大幅下降（Qwen3：54% → 15%）。较温和的(2N-2):2N模式（如6:8，25%剪枝）能保持精度却得不到硬件支持，只能回退到密集执行而无法获得任何性能收益。</span>
+                <span class="summary-hint">🔍 hover查看英文原文</span>
+            </td>
+            <td class="kw-cell"><span class="kw-badge">Verification</span><span class="kw-badge">Inference</span><span class="kw-badge">Quantization</span><span class="kw-badge">Large Language Model</span><span class="kw-badge">Speculative Decoding</span><span class="kw-badge">Speculative Decoding</span></td>
+            <td class="affil-cell">NVIDIA</td>
+            <td class="hot-cell">
+                <span class="hot-score">16</span>
+                <div class="hot-bar-bg"><div class="hot-bar" style="width:16%;background:#4f8ef7"></div></div>
+                <div class="hot-badges"><span class="fire-badge">🔥×2</span></div>
+            </td>
+            <td class="date-cell">2026-03-05</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#5</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.04814v1" target="_blank" class="paper-title">Beyond the Context Window: A Cost-Performance Analysis of Fact-Based Memory vs. Long-Context LLMs for Persistent Agents</a>
+            </td>
+            <td class="summary-cell">
+                <span class="summary-short" data-full="Persistent conversational AI systems face a choice between passing full conversation histories to a long-context large language model (LLM) and maintaining a dedicated memory system that extracts and retrieves structured facts. We compare a fact-based memory system built on the Mem0 framework against long-context LLM inference on three memory-centric benchmarks—LongMemEval, LoCoMo, and PersonaMem v2—and evaluate both architectures on accuracy and cumulative API cost. Long-context GPT-5-mini achieves higher factual recall on LongMemEval and LoCoMo, while the memory system is competitive on PersonaMem v2, where persona consistency depends on stable, factual attributes suited to flat-typed extraction. We construct a cost model that incorporates prompt caching and show that the two architectures have structurally different cost profiles: long-context inference incurs a per-turn charge that grows with context length even under caching, while the memory system’s per-turn read cost remains roughly fixed after a one-time write phase. At a context length of 100k tokens, the memory system becomes cheaper after approximately ten interaction turns, with the break-even point decreasing as context length grows. These results characterize the accuracy–cost trade-off between the two approaches and provide a concrete criterion for selecting between them in production deployments.">持久对话AI系统面临一个选择：要么将完整的对话历史传递给长上下文大语言模型（LLM），要么维护一个专用的记忆系统来提取和检索结构化事实。我们比较了基于Mem0框架构建的基于事实的记忆系统与长上下文LLM推理在三个以记忆为中心的任务上的表现。</span>
+                <span class="summary-hint">🔍 hover查看英文原文</span>
+            </td>
+            <td class="kw-cell"><span class="kw-badge">Verification</span><span class="kw-badge">Inference</span><span class="kw-badge">Quantization</span><span class="kw-badge">Large Language Model</span><span class="kw-badge">Speculative Decoding</span><span class="kw-badge">Speculative Decoding</span></td>
+            <td class="affil-cell">Natchanon Pollertlam</td>
+            <td class="hot-cell">
+                <span class="hot-score">14</span>
+                <div class="hot-bar-bg"><div class="hot-bar" style="width:14%;background:#4f8ef7"></div></div>
+                <div class="hot-badges"></div>
+            </td>
+            <td class="date-cell">2026-03-05</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#6</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.05413v1" target="_blank" class="paper-title">Building Enterprise Realtime Voice Agents from Scratch: A Technical Tutorial</a>
+            </td>
+            <td class="summary-cell">
+                <span class="summary-short" data-full="We present a technical tutorial for building enterprise-grade realtime voice agents from first principles. While over 25 open-source speech-to-speech models and numerous voice agent frameworks exist, no single resource explains the complete pipeline from individual components to a working streaming voice agent with function calling capabilities. Through systematic investigation, we find that (1) native speech-to-speech models like Qwen2.5-Omni, while capable of high-quality audio generation, are too slow for realtime interaction ( ∼ \sim 13s time-to-first-audio); (2) the industry-standard approach uses a cascaded streaming pipeline: STT → \rightarrow LLM → \rightarrow TTS, where each component streams its output to the next; and (3) the key to “realtime” is not any single fast model but rather streaming and pipelining across components. We build a complete voice agent using Deepgram (streaming STT), vLLM-served LLMs with function calling (streaming text generation), and ElevenLabs (streaming TTS), achieving a measured P50 time-to-first-audio of 947ms (best case 729ms) with cloud LLM APIs, and comparable latency with self-hosted vLLM on NVIDIA A10G GPU. We release the full codebase as a tutorial with working, tested code for every component.">我们提供了一个从基本原理构建企业级实时语音助手的技术教程。尽管已有超过25个开源语音到语音模型和众多语音助手框架，但目前尚无单一资源能够完整阐述从独立组件到具备函数调用能力的流式语音助手的完整流程。</span>
+                <span class="summary-hint">🔍 hover查看英文原文</span>
+            </td>
+            <td class="kw-cell"><span class="kw-badge">Verification</span><span class="kw-badge">Inference</span><span class="kw-badge">Quantization</span><span class="kw-badge">Large Language Model</span><span class="kw-badge">Speculative Decoding</span><span class="kw-badge">Speculative Decoding</span></td>
+            <td class="affil-cell">NVIDIA</td>
+            <td class="hot-cell">
+                <span class="hot-score">14</span>
+                <div class="hot-bar-bg"><div class="hot-bar" style="width:14%;background:#4f8ef7"></div></div>
+                <div class="hot-badges"></div>
+            </td>
+            <td class="date-cell">2026-03-05</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#7</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.05373v1" target="_blank" class="paper-title">Hierarchical Decoding for Discrete Speech Synthesis with Multi-Resolution Spoof Detection</a>
+            </td>
+            <td class="summary-cell">
+                <span class="summary-short" data-full="Neural codec language models enable high-quality discrete speech synthesis, yet their inference remains vulnerable to token-level artifacts and distributional drift that degrade perceptual realism. Rather than relying on preference optimization or retraining, we propose MSpoof-TTS, a training-free inference framework that improves zero-shot synthesis through multi-resolution spoof guidance. We introduce a Multi-Resolution Token-based Spoof Detection framework that evaluates codec sequences at different temporal granularities to detect locally inconsistent or unnatural patterns. We then integrate the spoof detectors into a hierarchical decoding strategy, progressively pruning low-quality candidates and re-ranking hypotheses. This discriminator-guided generation enhances robustness without modifying model parameters. Experiments validate the effectiveness of our framework for robust and high-quality codec-based speech generation.">神经编解码语言模型能够实现高质量的离散语音合成，但其推理过程仍然容易受到令牌级伪影和分布漂移的影响，这会降低感知真实性。我们提出MSpoof-TTS，这是一种无需训练的推理框架，它不依赖于偏好优化或重新训练，而是通过改进零样本来提升合成质量。</span>
+                <span class="summary-hint">🔍 hover查看英文原文</span>
+            </td>
+            <td class="kw-cell"><span class="kw-badge">Verification</span><span class="kw-badge">Inference</span><span class="kw-badge">Quantization</span><span class="kw-badge">Large Language Model</span><span class="kw-badge">Speculative Decoding</span><span class="kw-badge">Speculative Decoding</span></td>
+            <td class="affil-cell">Junchuan Zhao</td>
+            <td class="hot-cell">
+                <span class="hot-score">14</span>
+                <div class="hot-bar-bg"><div class="hot-bar" style="width:14%;background:#4f8ef7"></div></div>
+                <div class="hot-badges"></div>
+            </td>
+            <td class="date-cell">2026-03-05</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#8</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.05494v1" target="_blank" class="paper-title">Censored LLMs as a Natural Testbed for Secret Knowledge Elicitation</a>
+            </td>
+            <td class="summary-cell">
+                <span class="summary-short" data-full="Large language models sometimes produce false or misleading responses. Two approaches to this problem are honesty elicitation—modifying prompts or weights so that the model answers truthfully—and lie detection—classifying whether a given response is false. Prior work evaluates such methods on models specifically trained to lie or conceal information, but these artificial constructions may not resemble naturally-occurring dishonesty. We instead study open-weights LLMs from Chinese developers, which are trained to censor politically sensitive topics: Qwen3 models frequently produce falsehoods about subjects like Falun Gong or the Tiananmen protests while occasionally answering correctly, indicating they possess knowledge they are trained to suppress. Using this as a testbed, we evaluate a suite of elicitation and lie detection techniques. For honesty elicitation, sampling without a chat template, few-shot prompting, and fine-tuning on generic honesty data most reliably increase truthful responses. For lie detection, prompting the censored model to classify its own responses performs near an uncensored-model upper bound, and linear probes trained on unrelated data offer a cheaper alternative. The strongest honesty elicitation techniques also transfer to frontier open-weights models, including DeepSeek-R1 and Qwen3.5-397B. Notably, no technique fully eliminates false responses. We release all prompts, code, and transcripts.">大语言模型有时会产生虚假或误导性的回答。解决此问题的两种方法是诚实诱导——通过修改提示或权重使模型如实回答——和谎言检测——分类给定回答是否为虚假。</span>
+                <span class="summary-hint">🔍 hover查看英文原文</span>
+            </td>
+            <td class="kw-cell"><span class="kw-badge">Verification</span><span class="kw-badge">Inference</span><span class="kw-badge">Quantization</span><span class="kw-badge">Large Language Model</span><span class="kw-badge">Speculative Decoding</span><span class="kw-badge">Speculative Decoding</span></td>
+            <td class="affil-cell">DeepSeek</td>
+            <td class="hot-cell">
+                <span class="hot-score">14</span>
+                <div class="hot-bar-bg"><div class="hot-bar" style="width:14%;background:#4f8ef7"></div></div>
+                <div class="hot-badges"></div>
+            </td>
+            <td class="date-cell">2026-03-05</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#9</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.05488v1" target="_blank" class="paper-title">Reasoning Theater: Disentangling Model Beliefs from Chain-of-Thought</a>
+            </td>
+            <td class="summary-cell">
+                <span class="summary-short" data-full="We provide evidence of performative chain-of-thought (CoT) in reasoning models, where a model becomes strongly confident in its final answer, but continues generating tokens without revealing its internal belief. Our analysis compares activation probing, early forced answering, and a CoT monitor across two large models (DeepSeek-R1 671B &amp;amp; GPT-OSS 120B) and find task difficulty-specific differences: The model’s final answer is decodable from activations far earlier in CoT than a monitor is able to say, especially for easy recall-based MMLU questions. We contrast this with genuine reasoning in difficult multihop GPQA-Diamond questions. Despite this, inflection points (e.g., backtracking, ‘aha’ moments) occur almost exclusively in responses where probes show large belief shifts, suggesting these behaviors track genuine uncertainty rather than learned “reasoning theater.” Finally, probe-guided early exit reduces tokens by up to 80% on MMLU and 30% on GPQA-Diamond with similar accuracy, positioning attention probing as an efficient tool for detecting performative reasoning and enabling adaptive computation. 1 1 1 Codebase: github.com/AskSid/disentangling-computation-from-cot 2 2 2 Visualization of our data: reasoning-theater.streamlit.app">我们提供了推理模型中表演性思维链（CoT）的证据，即模型对其最终答案变得高度自信，但仍继续生成标记而不揭示其内部信念。我们的分析比较了激活探测、早期强制回答和CoT监控器在两种大型模型（DeepSeek-R1 671B和GPT-O）上的表现。</span>
+                <span class="summary-hint">🔍 hover查看英文原文</span>
+            </td>
+            <td class="kw-cell"><span class="kw-badge">Verification</span><span class="kw-badge">Inference</span><span class="kw-badge">Quantization</span><span class="kw-badge">Large Language Model</span><span class="kw-badge">Speculative Decoding</span><span class="kw-badge">Speculative Decoding</span></td>
+            <td class="affil-cell">DeepSeek</td>
+            <td class="hot-cell">
+                <span class="hot-score">14</span>
+                <div class="hot-bar-bg"><div class="hot-bar" style="width:14%;background:#4f8ef7"></div></div>
+                <div class="hot-badges"></div>
+            </td>
+            <td class="date-cell">2026-03-05</td>
+        </tr>
+        <tr class="paper-row">
+            <td class="rank-cell">
+                <span class="rank-num">#10</span>
+            </td>
+            <td class="title-cell">
+                <a href="http://arxiv.org/abs/2603.04729v1" target="_blank" class="paper-title">Behaviour Driven Development Scenario Generation with Large Language Models</a>
+            </td>
+            <td class="summary-cell">
+                <span class="summary-short" data-full="This paper presents an evaluation of three LLMs, GPT-4, Claude 3, and Gemini, for automated Behaviour-Driven Development (BDD) scenarios generation. To support this evaluation, we constructed a dataset of 500 user stories, requirement descriptions, and their corresponding BDD scenarios, drawn from four proprietary software products. We assessed the quality of BDD scenarios generated by LLMs using a multidimensional evaluation framework encompassing text and semantic similarity metrics, LLM-based evaluation, and human expert assessment. Our findings reveal that although GPT-4 achieves higher scores in text and semantic similarity metrics, Claude 3 produces scenarios rated highest by both human experts and LLM-based evaluators. LLM-based evaluators, particularly DeepSeek, show a stronger correlation with human judgment than with text similarity and semantic similarity metrics. The effectiveness of prompting techniques is model-specific: GPT-4 performs best with zero-shot, Claude 3 benefits from chain-of-thought reasoning, and Gemini achieves optimal results with few-shot examples. Input quality determines the effectiveness of BDD scenario generation: detailed requirement descriptions alone yield high-quality scenarios, whereas user stories alone yield low-quality scenarios. Our experiments indicate that setting temperature to 0 and top_p to 1.0 produced the highest-quality BDD scenarios across all models.">本文评估了三种大型语言模型（GPT-4、Claude 3和Gemini）在自动化行为驱动开发（BDD）场景生成方面的表现。为支持此项评估，我们构建了一个包含500个用户故事、需求描述及其对应BDD场景的数据集，这些数据来源于四个专有软件产品。</span>
+                <span class="summary-hint">🔍 hover查看英文原文</span>
+            </td>
+            <td class="kw-cell"><span class="kw-badge">Verification</span><span class="kw-badge">Inference</span><span class="kw-badge">Quantization</span><span class="kw-badge">Large Language Model</span><span class="kw-badge">Speculative Decoding</span><span class="kw-badge">Speculative Decoding</span></td>
+            <td class="affil-cell">DeepSeek</td>
+            <td class="hot-cell">
+                <span class="hot-score">14</span>
+                <div class="hot-bar-bg"><div class="hot-bar" style="width:14%;background:#4f8ef7"></div></div>
+                <div class="hot-badges"></div>
+            </td>
+            <td class="date-cell">2026-03-05</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  
+  <p class="section-title">🔍 论文搜索关键词（按主题分组）</p>
+  <div class="search-kw-wrap">
+    <div class="search-kw-row"><span class="search-kw-topic">🚀 LLM推理优化 (Inference Optimization)</span><span class="search-kw-tags"><span class="search-kw-tag">LLM inference</span><span class="search-kw-tag">inference optimization</span><span class="search-kw-tag">serving system</span><span class="search-kw-tag">agentic inference</span><span class="search-kw-tag">disaggregated inference</span><span class="search-kw-tag">I/O bottleneck LLM</span></span></div>
+<div class="search-kw-row"><span class="search-kw-topic">🏗️ AI Infra / 推理框架</span><span class="search-kw-tags"><span class="search-kw-tag">vLLM</span><span class="search-kw-tag">SGLang</span><span class="search-kw-tag">TensorRT-LLM</span><span class="search-kw-tag">inference framework</span><span class="search-kw-tag">storage bandwidth LLM</span><span class="search-kw-tag">disaggregated LLM</span></span></div>
+<div class="search-kw-row"><span class="search-kw-topic">🔵 DeepSeek 相关</span><span class="search-kw-tags"><span class="search-kw-tag">DeepSeek</span></span></div>
+<div class="search-kw-row"><span class="search-kw-topic">🟣 Qwen 相关</span><span class="search-kw-tags"><span class="search-kw-tag">Qwen</span></span></div>
+<div class="search-kw-row"><span class="search-kw-topic">💾 KV Cache 优化</span><span class="search-kw-tags"><span class="search-kw-tag">KV cache</span><span class="search-kw-tag">attention cache</span><span class="search-kw-tag">prefix cache</span></span></div>
+<div class="search-kw-row"><span class="search-kw-topic">⚡ 推测解码 / 量化</span><span class="search-kw-tags"><span class="search-kw-tag">speculative decoding</span><span class="search-kw-tag">quantization LLM</span><span class="search-kw-tag">model compression inference</span></span></div>
+
+  </div>
+  <p class="section-title">☁️ 论文关键词词云</p>
+  <div class="wordcloud-wrap">
+    <div id="wordcloud-chart" style="width:100%;height:380px;"></div>
+  </div>
+
+
+  <p class="section-title">📋 所有采集论文列表</p>
+  <details class="all-papers-wrap">
+    <summary>点击展开 · 共 40 篇论文</summary>
+    <table class="all-papers-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>标题</th>
+          <th>发布日期</th>
+          <th>热度分</th>
+          <th>引用次数</th>
+          <th>HF 点赞</th>
+          <th>arXiv 版本</th>
+          <th>GitHub 代码</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td><a href="http://arxiv.org/abs/2603.04379v1" target="_blank">Helios: Real Real-Time Long Video Generation Model</a></td><td>2026-03-04</td><td>38</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#34d399;font-weight:600">👍 133</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><a href="https://github.com/PKU-YuanGroup/Helios" target="_blank" style="color:#4ade80;font-size:0.75rem;font-weight:600">✅ Code ⭐764</a></td></tr>
+<tr><td>2</td><td><a href="http://arxiv.org/abs/2603.05504v1" target="_blank">RoboPocket: Improve Robot Policies Instantly with Your Phone</a></td><td>2026-03-05</td><td>29</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#34d399;font-weight:600">👍 30</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>3</td><td><a href="http://arxiv.org/abs/2603.04716v1" target="_blank">SLO-Aware Compute Resource Allocation for Prefill-Decode Disaggregated LLM Inference</a></td><td>2026-03-05</td><td>16</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>4</td><td><a href="http://arxiv.org/abs/2603.05232v1" target="_blank">SlideSparse: Fast and Flexible (2N-2):2N Structured Sparsity</a></td><td>2026-03-05</td><td>16</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>5</td><td><a href="http://arxiv.org/abs/2603.04814v1" target="_blank">Beyond the Context Window: A Cost-Performance Analysis of Fact-Based Memory vs. Long-Context LLMs for Persistent Agents</a></td><td>2026-03-05</td><td>14</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>6</td><td><a href="http://arxiv.org/abs/2603.05413v1" target="_blank">Building Enterprise Realtime Voice Agents from Scratch: A Technical Tutorial</a></td><td>2026-03-05</td><td>14</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>7</td><td><a href="http://arxiv.org/abs/2603.05373v1" target="_blank">Hierarchical Decoding for Discrete Speech Synthesis with Multi-Resolution Spoof Detection</a></td><td>2026-03-05</td><td>14</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>8</td><td><a href="http://arxiv.org/abs/2603.05494v1" target="_blank">Censored LLMs as a Natural Testbed for Secret Knowledge Elicitation</a></td><td>2026-03-05</td><td>14</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>9</td><td><a href="http://arxiv.org/abs/2603.05488v1" target="_blank">Reasoning Theater: Disentangling Model Beliefs from Chain-of-Thought</a></td><td>2026-03-05</td><td>14</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>10</td><td><a href="http://arxiv.org/abs/2603.04729v1" target="_blank">Behaviour Driven Development Scenario Generation with Large Language Models</a></td><td>2026-03-05</td><td>14</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>11</td><td><a href="http://arxiv.org/abs/2603.05400v1" target="_blank">An Exploration-Analysis-Disambiguation Reasoning Framework for Word Sense Disambiguation with Low-Parameter LLMs</a></td><td>2026-03-05</td><td>14</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>12</td><td><a href="http://arxiv.org/abs/2603.05230v1" target="_blank">Digital Twin Driven Textile Classification and Foreign Object Recognition in Automated Sorting Systems</a></td><td>2026-03-05</td><td>14</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>13</td><td><a href="http://arxiv.org/abs/2603.04956v1" target="_blank">WaterSIC: information-theoretically (near) optimal linear layer quantization</a></td><td>2026-03-05</td><td>14</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>14</td><td><a href="http://arxiv.org/abs/2603.04949v1" target="_blank">TimeWarp: Evaluating Web Agents by Revisiting the Past</a></td><td>2026-03-05</td><td>14</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>15</td><td><a href="http://arxiv.org/abs/2603.04897v1" target="_blank">Can LLMs Capture Expert Uncertainty? A Comparative Analysis of Value Alignment in Ethnographic Qualitative Research</a></td><td>2026-03-05</td><td>14</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>16</td><td><a href="http://arxiv.org/abs/2603.05454v1" target="_blank">Beyond Scattered Acceptance: Fast and Coherent Inference for DLMs via Longest Stable Prefixes</a></td><td>2026-03-05</td><td>14</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>17</td><td><a href="http://arxiv.org/abs/2603.05353v1" target="_blank">InfoFlow KV: Information-Flow-Aware KV Recomputation for Long Context</a></td><td>2026-03-05</td><td>14</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>18</td><td><a href="http://arxiv.org/abs/2603.05035v1" target="_blank">Good-Enough LLM Obfuscation (GELO)</a></td><td>2026-03-05</td><td>14</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>19</td><td><a href="http://arxiv.org/abs/2603.04797v1" target="_blank">Hardware-Software Co-design for 3D-DRAM-based LLM Serving Accelerator</a></td><td>2026-03-05</td><td>14</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>20</td><td><a href="http://arxiv.org/abs/2603.05210v1" target="_blank">Balancing Coverage and Draft Latency in Vocabulary Trimming for Faster Speculative Decoding</a></td><td>2026-03-05</td><td>14</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>21</td><td><a href="http://arxiv.org/abs/2603.03251v1" target="_blank">Speculative Speculative Decoding</a></td><td>2026-03-03</td><td>13</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#34d399;font-weight:600">👍 2</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>22</td><td><a href="http://arxiv.org/abs/2603.04028v1" target="_blank">A Multi-Dimensional Quality Scoring Framework for Decentralized LLM Inference with Proof of Quality</a></td><td>2026-03-04</td><td>11</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>23</td><td><a href="http://arxiv.org/abs/2603.04275v1" target="_blank">Statistical Inference for Score Decompositions</a></td><td>2026-03-04</td><td>11</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>24</td><td><a href="http://arxiv.org/abs/2603.04212v1" target="_blank">Code Fingerprints: Disentangled Attribution of LLM-Generated Code</a></td><td>2026-03-04</td><td>11</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>25</td><td><a href="http://arxiv.org/abs/2603.02872v1" target="_blank">Think-as-You-See: Streaming Chain-of-Thought Reasoning for Large Vision-Language Models</a></td><td>2026-03-03</td><td>11</td><td style="text-align:center"><span style="color:#4f8ef7;font-weight:600">1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>26</td><td><a href="http://arxiv.org/abs/2603.02737v1" target="_blank">Ouroboros: Wafer-Scale SRAM CIM with Token-Grained Pipelining for Large Language Model Inference</a></td><td>2026-03-03</td><td>11</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>27</td><td><a href="http://arxiv.org/abs/2603.01400v1" target="_blank">Token Reduction via Local and Global Contexts Optimization for Efficient Video Large Language Models</a></td><td>2026-03-02</td><td>8</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#34d399;font-weight:600">👍 1</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>28</td><td><a href="http://arxiv.org/abs/2603.02949v1" target="_blank">SEALing the Gap: A Reference Framework for LLM Inference Carbon Estimation via Multi-Benchmark Driven Embodiment</a></td><td>2026-03-03</td><td>8</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>29</td><td><a href="http://arxiv.org/abs/2603.02772v1" target="_blank">Agentic Self-Evolutionary Replanning for Embodied Navigation</a></td><td>2026-03-03</td><td>8</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>30</td><td><a href="http://arxiv.org/abs/2603.03512v1" target="_blank">Baseline Performance of AI Tools in Classifying Cognitive Demand of Mathematical Tasks</a></td><td>2026-03-03</td><td>8</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>31</td><td><a href="http://arxiv.org/abs/2603.03505v1" target="_blank">PhyPrompt: RL-based Prompt Refinement for Physically Plausible Text-to-Video Generation</a></td><td>2026-03-03</td><td>8</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>32</td><td><a href="http://arxiv.org/abs/2603.03418v1" target="_blank">mHC-HSI: Clustering-Guided Hyper-Connection Mamba for Hyperspectral Image Classification</a></td><td>2026-03-03</td><td>8</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>33</td><td><a href="http://arxiv.org/abs/2603.02631v1" target="_blank">Cross-Family Speculative Prefill: Training-Free Long-Context Compression with Small Draft Models</a></td><td>2026-03-03</td><td>8</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>34</td><td><a href="http://arxiv.org/abs/2603.03383v1" target="_blank">Accelerating OpenPangu Inference on NPU via Speculative Decoding</a></td><td>2026-03-03</td><td>8</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>35</td><td><a href="http://arxiv.org/abs/2603.01639v1" target="_blank">Learning to Draft: Adaptive Speculative Decoding with Reinforcement Learning</a></td><td>2026-03-02</td><td>8</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>36</td><td><a href="http://arxiv.org/abs/2603.02057v1" target="_blank">Beyond Microservices: Testing Web-Scale RCA Methods on GPU-Driven LLM Workloads</a></td><td>2026-03-02</td><td>5</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>37</td><td><a href="http://arxiv.org/abs/2603.01788v1" target="_blank">nchellwig at SemEval-2026 Task 3: Self-Consistent Structured Generation (SCSG) for Dimensional Aspect-Based Sentiment Analysis using Large Language Models</a></td><td>2026-03-02</td><td>5</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>38</td><td><a href="http://arxiv.org/abs/2603.02188v1" target="_blank">Multi-Head Low-Rank Attention</a></td><td>2026-03-02</td><td>5</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>39</td><td><a href="http://arxiv.org/abs/2603.01581v1" target="_blank">KERV: Kinematic-Rectified Speculative Decoding for Embodied VLA Models</a></td><td>2026-03-02</td><td>5</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+<tr><td>40</td><td><a href="http://arxiv.org/abs/2603.01399v1" target="_blank">Quasar: Quantized Self-Speculative Acceleration for Rapid Inference via Memory-Efficient Verification</a></td><td>2026-03-02</td><td>5</td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td><td style="text-align:center"><span style="color:#4a5568">v1</span></td><td style="text-align:center"><span style="color:#4a5568">—</span></td></tr>
+
+      </tbody>
+    </table>
+  </details>
+
+  <section class="formula-section">
+    <p class="section-title">📐 热度评分公式详解</p>
+    <div class="formula-wrap">
+      <div class="formula-box">
+        <div class="formula-title">综合热度分（满分 100 分）</div>
+        <div class="formula-expr">
+          热度分 = 引用次数分（25）+ 时效性分（20）+ HF点赞分（20）+ GitHub/PWC代码收录（25）+ 版本分（5）+ 跨分类命中分（5）
+        </div>
+        <div class="formula-note">理论上限恰好为 100 分，无需截断</div>
+      </div>
+      <div class="formula-dims">
+        <div class="formula-dim">
+          <span class="dim-name">📚 引用次数</span>
+          <span class="dim-weight">25 分</span>
+          <span class="dim-desc">来自 Semantic Scholar。log₂(引用数+1) / log₂(1001) × 25，约 1000 次引用得满分。对成熟论文最有效。</span>
+        </div>
+        <div class="formula-dim">
+          <span class="dim-name">⏰ 时效性</span>
+          <span class="dim-weight">20 分</span>
+          <span class="dim-desc">发布当天得 20 分，7 天内线性衰减，超过 7 天得 0 分。确保新论文不会因无引用而被埋没。</span>
+        </div>
+        <div class="formula-dim">
+          <span class="dim-name">👍 HF 点赞数</span>
+          <span class="dim-weight">20 分</span>
+          <span class="dim-desc">来自 Hugging Face Papers 社区点赞数。log₂(点赞数+1) / log₂(101) × 20，约 100 个点赞得满分。<strong>对新论文最有效</strong>，发布当天即可获得社区反馈。</span>
+        </div>
+        <div class="formula-dim">
+          <span class="dim-name">💻 GitHub / Papers With Code 代码收录</span>
+          <span class="dim-weight">25 分</span>
+          <span class="dim-desc">两个加权因子综合计算：<strong>① 有代码基础分 5 分</strong>（有仓库即得，无代码为 0）；<strong>② GitHub Star 线性分最高 20 分</strong>（star_score = min(stars, 10000) / 10000 × 20）。例：0 star=5分，3000 star≈11分，10000+ star=25分满分。</span>
+        </div>
+        <div class="formula-dim">
+          <span class="dim-name">🔄 arXiv 版本数</span>
+          <span class="dim-weight">5 分</span>
+          <span class="dim-desc">v1=0分，v2=3分，v3及以上=5分。有修订版本说明论文收到了社区反馈，作者在积极完善。</span>
+        </div>
+        <div class="formula-dim">
+          <span class="dim-name">🔥 跨分类命中</span>
+          <span class="dim-weight">5 分</span>
+          <span class="dim-desc">被多个搜索主题命中：命中1个主题得2.5分，命中2个及以上得5分。说明论文覆盖多个研究方向。</span>
+        </div>
+      </div>
+      <div class="formula-sources">
+        数据来源：
+        <a href="https://www.semanticscholar.org" target="_blank">Semantic Scholar</a>（引用数）·
+        <a href="https://huggingface.co/papers" target="_blank">Hugging Face Papers</a>（社区热度 &amp; 代码仓库）·
+        <a href="https://arxiv.org" target="_blank">arXiv.org</a>（版本信息）·
+        <a href="https://paperswithcode.com" target="_blank">Papers With Code</a>（代码收录参考）
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <span>数据来源: <a href="https://arxiv.org" target="_blank">arXiv.org</a></span>
+  </footer>
+</div>
+
+<!-- ECharts + wordcloud -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts-wordcloud@2/dist/echarts-wordcloud.min.js"></script>
+<script>
+(function() {
+  // ---- ECharts 词云 ----
+  var chartDom = document.getElementById('wordcloud-chart');
+  if (chartDom) {
+    var myChart = echarts.init(chartDom, null, {renderer: 'canvas'});
+    var wcData = [{"name": "Large Language Model", "value": 295}, {"name": "Inference", "value": 265}, {"name": "Speculative Decoding", "value": 190}, {"name": "Framework", "value": 105}, {"name": "CORE", "value": 100}, {"name": "LLM", "value": 90}, {"name": "Chain-of-Thought", "value": 90}, {"name": "Information", "value": 90}, {"name": "vLLM", "value": 80}, {"name": "SGLang", "value": 80}, {"name": "Quantization", "value": 65}, {"name": "DeepSeek", "value": 60}, {"name": "Attention", "value": 60}, {"name": "QUEST", "value": 50}, {"name": "KV Cache", "value": 50}, {"name": "Verification", "value": 50}, {"name": "Aware", "value": 45}, {"name": "Detection", "value": 45}, {"name": "Zero-Shot", "value": 45}, {"name": "GEMM", "value": 45}, {"name": "Llm Inference", "value": 35}, {"name": "Reinforcement Learning", "value": 35}, {"name": "Activation", "value": 35}, {"name": "LLM inference", "value": 30}, {"name": "inference optimization", "value": 30}, {"name": "serving system", "value": 30}, {"name": "agentic inference", "value": 30}, {"name": "disaggregated inference", "value": 30}, {"name": "I/O bottleneck LLM", "value": 30}, {"name": "TensorRT-LLM", "value": 30}, {"name": "inference framework", "value": 30}, {"name": "storage bandwidth LLM", "value": 30}, {"name": "disaggregated LLM", "value": 30}, {"name": "Qwen", "value": 30}, {"name": "KV cache", "value": 30}, {"name": "attention cache", "value": 30}, {"name": "prefix cache", "value": 30}, {"name": "speculative decoding", "value": 30}, {"name": "quantization LLM", "value": 30}, {"name": "model compression inference", "value": 30}, {"name": "Estimation", "value": 30}, {"name": "Navigation", "value": 30}, {"name": "FAST", "value": 30}, {"name": "Execution", "value": 30}, {"name": "IDER", "value": 30}, {"name": "Code Generation", "value": 30}, {"name": "Classification", "value": 30}, {"name": "Acceptance", "value": 30}, {"name": "Video Generation", "value": 30}, {"name": "Nature", "value": 30}, {"name": "SLO", "value": 20}, {"name": "Allocation", "value": 20}, {"name": "Disaggregation", "value": 20}, {"name": "SRAM", "value": 20}, {"name": "CIM", "value": 20}, {"name": "Movement", "value": 20}, {"name": "Sparsity", "value": 20}, {"name": "Acceleration", "value": 20}, {"name": "BLOCK", "value": 20}, {"name": "Context Length", "value": 15}];
+    myChart.setOption({
+      backgroundColor: '#161a23',
+      tooltip: {
+        show: true,
+        formatter: function(p) { return p.name + ': ' + p.value; }
+      },
+      series: [{
+        type: 'wordCloud',
+        shape: 'pentagon',
+        left: 'center',
+        top: 'center',
+        width: '95%',
+        height: '90%',
+        sizeRange: [14, 72],
+        rotationRange: [-45, 45],
+        rotationStep: 15,
+        gridSize: 8,
+        drawOutOfBound: false,
+        layoutAnimation: true,
+        textStyle: {
+          fontFamily: 'Space Grotesk, sans-serif',
+          fontWeight: 'bold',
+          color: function() {
+            var colors = [
+              '#4f8ef7','#a78bfa','#34d399','#f97316',
+              '#facc15','#38bdf8','#fb7185','#6ee7b7'
+            ];
+            return colors[Math.floor(Math.random() * colors.length)];
+          }
+        },
+        emphasis: {
+          focus: 'self',
+          textStyle: { shadowBlur: 10, shadowColor: '#4f8ef7' }
+        },
+        data: wcData
+      }]
+    });
+    window.addEventListener('resize', function() { myChart.resize(); });
+  }
+
+  // ---- Summary hover tooltip ----
+  var tooltip = document.getElementById('summary-tooltip');
+  var allShorts = document.querySelectorAll('.summary-short');
+  allShorts.forEach(function(el) {
+    el.addEventListener('mouseenter', function(e) {
+      var full = el.getAttribute('data-full');
+      if (!full) return;
+      tooltip.textContent = full;
+      tooltip.style.display = 'block';
+      positionTooltip(e);
+    });
+    el.addEventListener('mousemove', function(e) {
+      positionTooltip(e);
+    });
+    el.addEventListener('mouseleave', function() {
+      tooltip.style.display = 'none';
+    });
+  });
+
+  function positionTooltip(e) {
+    var x = e.clientX + 16;
+    var y = e.clientY + 16;
+    var tw = tooltip.offsetWidth || 420;
+    var th = tooltip.offsetHeight || 100;
+    if (x + tw > window.innerWidth - 10) x = e.clientX - tw - 10;
+    if (y + th > window.innerHeight - 10) y = e.clientY - th - 10;
+    tooltip.style.left = x + 'px';
+    tooltip.style.top = y + 'px';
+  }
+})();
+</script>
+</body>
+</html>
