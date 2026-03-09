@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📱 微信公众号监控日报 - 2026年03月09日</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f1a;
+    --surface: #1a1a2e;
+    --surface2: #16213e;
+    --border: rgba(255,255,255,0.08);
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --accent: #7c3aed;
+    --accent2: #06b6d4;
+    --radius: 12px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', 'Noto Serif SC', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 20% 50%, rgba(124,58,237,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(6,182,212,0.06) 0%, transparent 50%);
+  }
+  .header {
+    padding: 48px 24px 32px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(124,58,237,0.05) 0%, transparent 100%);
+  }
+  .header-badge {
+    display: inline-block;
+    padding: 4px 14px;
+    background: rgba(124,58,237,0.2);
+    border: 1px solid rgba(124,58,237,0.4);
+    border-radius: 20px;
+    font-size: 12px;
+    color: #a78bfa;
+    letter-spacing: 0.05em;
+    margin-bottom: 16px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .header h1 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 700;
+    background: linear-gradient(135deg, #e2e8f0 0%, #a78bfa 50%, #67e8f9 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+  .header-meta {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-top: 8px;
+  }
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+  /* 统计卡片 */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+  }
+  .stat-num {
+    font-size: 2.2rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .stat-label {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  /* 总数卡片 */
+  .total-card {
+    background: linear-gradient(135deg, rgba(124,58,237,0.15) 0%, rgba(6,182,212,0.1) 100%);
+    border: 1px solid rgba(124,58,237,0.3);
+    border-radius: var(--radius);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .total-card .big-num {
+    font-size: 3rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    background: linear-gradient(135deg, #a78bfa, #67e8f9);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .total-card .total-desc {
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  /* 过滤栏 */
+  .filter-bar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+  .filter-btn {
+    padding: 7px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    background: rgba(124,58,237,0.2);
+    border-color: rgba(124,58,237,0.5);
+    color: #a78bfa;
+  }
+  /* 文章卡片 */
+  .article-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 16px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .article-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.3);
+    border-color: rgba(124,58,237,0.3);
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .account-badge {
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+  }
+  .source-badge {
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-size: 11px;
+    background: rgba(255,255,255,0.08);
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .pub-date {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .article-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    line-height: 1.5;
+  }
+  .article-title a {
+    color: var(--text);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  .article-title a:hover {
+    color: #a78bfa;
+  }
+  .keywords {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .kw-tag {
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 500;
+    transition: opacity 0.2s;
+  }
+  .kw-tag:hover { opacity: 0.8; }
+  .article-summary {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+  /* 动画 */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-in {
+    animation: fadeInUp 0.4s ease-out forwards;
+  }
+  /* 空状态 */
+  .empty-state {
+    text-align: center;
+    padding: 60px 24px;
+    color: var(--text-muted);
+  }
+  .empty-state .emoji { font-size: 3rem; margin-bottom: 12px; }
+  /* 页脚 */
+  footer {
+    text-align: center;
+    padding: 32px 24px;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  footer a { color: #a78bfa; text-decoration: none; }
+  @media (max-width: 640px) {
+    .pub-date { display: none; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-badge">WECHAT MONITOR · 2026年03月09日</div>
+  <h1>📱 微信公众号技术日报</h1>
+  <p class="header-meta">生成时间：2026年03月09日 15:45 &nbsp;·&nbsp; 数据来源：Wechat2RSS + 搜狗微信</p>
+</header>
+
+<div class="container">
+
+  <!-- 总览 -->
+  <div class="total-card">
+    <div class="big-num">27</div>
+    <div class="total-desc">
+      过去 <strong style="color:#a78bfa">7 天</strong> 内共收录文章<br>
+      覆盖 <strong style="color:#67e8f9">3</strong> 个公众号
+    </div>
+  </div>
+
+  <!-- 各账号统计 -->
+  <div class="stats-row">
+    
+        <div class="stat-card" style="border-left: 4px solid #667eea">
+            <div class="stat-num" style="color:#667eea">19</div>
+            <div class="stat-label">机器之心</div>
+        </div>
+        <div class="stat-card" style="border-left: 4px solid #f6ad55">
+            <div class="stat-num" style="color:#f6ad55">5</div>
+            <div class="stat-label">阿里云开发者</div>
+        </div>
+        <div class="stat-card" style="border-left: 4px solid #48bb78">
+            <div class="stat-num" style="color:#48bb78">3</div>
+            <div class="stat-label">腾讯技术工程</div>
+        </div>
+        <div class="stat-card" style="border-left: 4px solid #ed64a6">
+            <div class="stat-num" style="color:#ed64a6">0</div>
+            <div class="stat-label">vLLM</div>
+        </div>
+  </div>
+
+  <!-- 过滤按钮 -->
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="filterArticles('all')">全部 (27)</button>
+    <button class="filter-btn" onclick="filterArticles('机器之心')">机器之心 (19)</button><button class="filter-btn" onclick="filterArticles('阿里云开发者')">阿里云开发者 (5)</button><button class="filter-btn" onclick="filterArticles('腾讯技术工程')">腾讯技术工程 (3)</button>
+  </div>
+
+  <!-- 文章列表 -->
+  <div id="articles-container">
+    
+            <article class="article-card fade-in">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="pub-date">📅 2026-03-08 12:04</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651020388&idx=1&sn=deb1784bd1795c6a77b14d76851c9d8c" target="_blank" rel="noopener">一键接入OpenClaw，谷歌开源CLI狂揽15k Stars，Agent开始接管Workspace</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">Agent</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">开源</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">Stars</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">一键接入</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">谷歌开源</span></div>
+                <p class="article-summary">CLI神器来了</p>
+            </article>
+            <article class="article-card fade-in">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="pub-date">📅 2026-03-08 12:04</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651020388&idx=2&sn=f9e3c4abb5397c93797eb67053363327" target="_blank" rel="noopener">自动研究真的是未来！Karpathy放大招，将自我迭代智能体放进单个GPU</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">GPU</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">自动研究</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">真的是未</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">放大招</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">将自我迭</span></div>
+                <p class="article-summary">部分代码，部分科幻，还有一点精神分裂症 :)</p>
+            </article>
+            <article class="article-card fade-in">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="pub-date">📅 2026-03-08 12:04</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651020388&idx=3&sn=aa2cc0f123a909ab9c2fcbd755133390" target="_blank" rel="noopener">李曼玲、李飞飞团队顶会新作：给大模型测「空间智商」</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">大模型</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">李曼玲</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">李飞飞团</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">队顶会新</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">给大模型</span></div>
+                <p class="article-summary">迈向下一代具身智能</p>
+            </article>
+            <article class="article-card fade-in">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="pub-date">📅 2026-03-07 12:18</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651020334&idx=1&sn=5545a4b599966d797919aac970ce92ef" target="_blank" rel="noopener">14B规模竟也能单卡实时生成视频？多亏这个强大的开源底座</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">开源</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">规模竟也</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">能单卡实</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">时生成视</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">多亏这个</span></div>
+                <p class="article-summary">视频生成也有公共基础设施了！</p>
+            </article>
+            <article class="article-card fade-in">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="pub-date">📅 2026-03-07 12:18</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651020334&idx=2&sn=dc9d13d6deb2c3ee31e3d57deebed308" target="_blank" rel="noopener">Claude两周挖出火狐浏览器22个漏洞、14个高危！安全研究的游戏规则该变了？</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">Claude</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">两周挖出</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">火狐浏览</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">个漏洞</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">个高危</span></div>
+                <p class="article-summary">能挖出14个高危漏洞，却只写出2个exploit：这既是好消息，也是坏消息。</p>
+            </article>
+            <article class="article-card fade-in">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="pub-date">📅 2026-03-07 12:18</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651020334&idx=3&sn=3d54da751c965ca30c6373d76b53f75a" target="_blank" rel="noopener">谢赛宁也玩MC？开源全新世界模型生成多人一致的游戏视角</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">开源</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">谢赛宁也</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">开源全新</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">世界模型</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">生成多人</span></div>
+                <p class="article-summary">真·我的世界</p>
+            </article>
+            <article class="article-card fade-in">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="pub-date">📅 2026-03-07 12:18</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651020334&idx=4&sn=57c302ec4b9d4508864e8d799bf1038c" target="_blank" rel="noopener">破解大模型「无效并行推理」：Parallel-Probe问世，并行推理效率提升35.8%</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">推理</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">并行</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">大模型</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">Parallel</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">破解大模</span></div>
+                <p class="article-summary">在不牺牲核心准确率的前提下，显著减少无效计算。</p>
+            </article>
+            <article class="article-card fade-in">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="pub-date">📅 2026-03-06 12:28</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651020091&idx=1&sn=c67bb3f04ba35160ab0a3b24b5d1eb4c" target="_blank" rel="noopener">李飞飞50亿美金赛道被开源！浙大教授章国锋带队创业，打造无限时长实时3D世界模型</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">开源</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">世界模型</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">李飞飞</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">亿美金赛</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">道被开源</span></div>
+                <p class="article-summary">全球首个开源的实时可交互3D世界模型。</p>
+            </article>
+            <article class="article-card fade-in">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="pub-date">📅 2026-03-06 12:28</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651020091&idx=2&sn=dc5a27b3f449a9d5ea45b053cacb184f" target="_blank" rel="noopener">FlashAttention-4正式发布：算法流水线大改，矩阵乘法级速度</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">流水线</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">FlashAttention</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">正式发布</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">算法流水</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">线大改</span></div>
+                <p class="article-summary">再也不必在「灵活性」和「高性能」之间做单选题。</p>
+            </article>
+            <article class="article-card fade-in">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="pub-date">📅 2026-03-06 12:28</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651020091&idx=3&sn=1a83a5837a71f62aef47735021021562" target="_blank" rel="noopener">CVPR 2026 | 1B模型也能当多镜头导演？大连理工&amp;快手可灵开源力作MultiShotMaster</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">开源</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">CVPR</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">模型也能</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">当多镜头</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">导演</span></div>
+                <p class="article-summary">有望推动 AI 视频创作进入一个叙事更连贯、表达更自由的新阶段。</p>
+            </article>
+            <article class="article-card fade-in">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="pub-date">📅 2026-03-05 12:12</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651019594&idx=1&sn=3a84909162929d5dc9c501bc75eafc07" target="_blank" rel="noopener">弯道超车？国产具身，千小时人类数据激发智能涌现</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">千小时人</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">弯道超车</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">国产具身</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">类数据激</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">发智能涌</span></div>
+                <p class="article-summary">千小时人类第一视角数据，击穿Pi0.5数万小时学习成果</p>
+            </article>
+            <article class="article-card fade-in">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="pub-date">📅 2026-03-05 12:12</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651019594&idx=2&sn=c1bf1f085c82c7412aa38836e8af2b94" target="_blank" rel="noopener">4599起，谁能拒绝一台粉色的MacBook呢</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">MacBook</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">Air</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">谁能拒绝</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">一台粉色</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">收二手</span></div>
+                <p class="article-summary">收二手 MacBook Air</p>
+            </article>
+            <article class="article-card fade-in">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="pub-date">📅 2026-03-05 12:12</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651019594&idx=3&sn=5d0d89f1fa61b39b7b7f58e2b25dbd9f" target="_blank" rel="noopener">告别「边画边说」：LatentMorph 开启视觉生成隐式潜空间推理新范式</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">推理</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">LatentMorph</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">告别</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">边画边说</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">开启视觉</span></div>
+                <p class="article-summary">推理增强型模型正从「显式说理」向 「隐式直觉」 发生范式转移。</p>
+            </article>
+            <article class="article-card fade-in">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="pub-date">📅 2026-03-04 17:13</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651019507&idx=1&sn=f1b716270c20c5839879cf391aaabbfa" target="_blank" rel="noopener">大模型的第一性原理：（三）信息论篇</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">大模型</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">第一性原</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">大模型的</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">信息论篇</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">本文完全</span></div>
+                <p class="article-summary">本文完全从信息论的角度出发，深入解读原论文，探讨大模型背后的第一性原理。</p>
+            </article>
+            <article class="article-card fade-in">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="pub-date">📅 2026-03-04 17:13</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651019507&idx=2&sn=9f156b802d4302b86d8f9e14ae1af751" target="_blank" rel="noopener">李飞飞World Labs最新判断：AI写完代码，下一步是「写世界」？</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">李飞飞</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">最新判断</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">写完代码</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">下一步是</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">写世界</span></div>
+                <p class="article-summary">3D as code</p>
+            </article>
+            <article class="article-card fade-in">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="pub-date">📅 2026-03-04 17:13</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651019507&idx=3&sn=4223d596ca237d5bc55cad3c9551f7b3" target="_blank" rel="noopener">在AI社会抓「内鬼」？上海AI Lab推出首个多智能体极端事件解释框架</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">社会抓</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">内鬼</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">上海</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">推出首个</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">多智能体</span></div>
+                <p class="article-summary">掌握解释的工具，才能重新编译一个更加安全的未来。</p>
+            </article>
+            <article class="article-card fade-in">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="pub-date">📅 2026-03-03 17:03</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651019191&idx=1&sn=8bedc286edc083ef4a2ccfb431f1e2a6" target="_blank" rel="noopener">神隐许久的光年之外，造了款AI浏览器Tabbit，能打吗？</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">神隐许久</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">的光年之</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">造了款</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">浏览器</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">能打吗</span></div>
+                <p class="article-summary">已全面开启公测。</p>
+            </article>
+            <article class="article-card fade-in">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="pub-date">📅 2026-03-03 17:03</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651019191&idx=2&sn=4be0ed8e60d25714ceb68916660f8311" target="_blank" rel="noopener">训练机器人方式对了吗？英伟达DreamZero双榜第一新反思</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">训练</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">训练机器</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">人方式对</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">了吗</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">英伟达</span></div>
+                <p class="article-summary">也许我们一直在用错方式训练机器人</p>
+            </article>
+            <article class="article-card fade-in">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="pub-date">📅 2026-03-03 17:03</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651019191&idx=3&sn=6f11bcbcf5ee1140821f30f340ba1a3b" target="_blank" rel="noopener">ICLR 2026 | 当视频难以被表征：UCSD、HKUST等机构联合提出FlowRVS，用生成式流匹配重构视觉感知范式</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">ICLR</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">UCSD</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">Flow</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">Matching</span><span class="kw-tag" style="background:#e8ecff;color:#5a67d8;border:1px solid #5a67d840">当视频难</span></div>
+                <p class="article-summary">Flow Matching 的跨模态大一统</p>
+            </article>
+            <article class="article-card fade-in">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#f6ad55">阿里云开发者</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="pub-date">📅 2026-03-09 08:31</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzIzOTU0NTQ0MA==&mid=2247558718&idx=1&sn=cdc0820c4421c05351328a5a5e145619" target="_blank" rel="noopener">给“氛围编程”系上安全带：阿里集团 AI 代码评审实践与 Benchmark 开源</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#fff7ed;color:#dd6b20;border:1px solid #dd6b2040">开源</span><span class="kw-tag" style="background:#fff7ed;color:#dd6b20;border:1px solid #dd6b2040">Benchmark</span><span class="kw-tag" style="background:#fff7ed;color:#dd6b20;border:1px solid #dd6b2040">氛围编程</span><span class="kw-tag" style="background:#fff7ed;color:#dd6b20;border:1px solid #dd6b2040">系上安全</span><span class="kw-tag" style="background:#fff7ed;color:#dd6b20;border:1px solid #dd6b2040">阿里集团</span></div>
+                <p class="article-summary">暂无摘要</p>
+            </article>
+            <article class="article-card fade-in">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#f6ad55">阿里云开发者</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="pub-date">📅 2026-03-06 08:32</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzIzOTU0NTQ0MA==&mid=2247558717&idx=1&sn=f0da24160b18a384f21eba5e9bd8b85f" target="_blank" rel="noopener">阿里开源 Team 版 OpenClaw，5分钟完成本地安装</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#fff7ed;color:#dd6b20;border:1px solid #dd6b2040">开源</span><span class="kw-tag" style="background:#fff7ed;color:#dd6b20;border:1px solid #dd6b2040">Team</span><span class="kw-tag" style="background:#fff7ed;color:#dd6b20;border:1px solid #dd6b2040">OpenClaw</span><span class="kw-tag" style="background:#fff7ed;color:#dd6b20;border:1px solid #dd6b2040">阿里开源</span><span class="kw-tag" style="background:#fff7ed;color:#dd6b20;border:1px solid #dd6b2040">分钟完成</span></div>
+                <p class="article-summary">暂无摘要</p>
+            </article>
+            <article class="article-card fade-in">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#f6ad55">阿里云开发者</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="pub-date">📅 2026-03-05 08:30</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzIzOTU0NTQ0MA==&mid=2247558666&idx=1&sn=5c7df3f5568be3c1cd9fa720feca1862" target="_blank" rel="noopener">Skills：从编程工具的配角到Agent研发的核心</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#fff7ed;color:#dd6b20;border:1px solid #dd6b2040">Agent</span><span class="kw-tag" style="background:#fff7ed;color:#dd6b20;border:1px solid #dd6b2040">Skills</span><span class="kw-tag" style="background:#fff7ed;color:#dd6b20;border:1px solid #dd6b2040">从编程工</span><span class="kw-tag" style="background:#fff7ed;color:#dd6b20;border:1px solid #dd6b2040">具的配角</span><span class="kw-tag" style="background:#fff7ed;color:#dd6b20;border:1px solid #dd6b2040">研发的核</span></div>
+                <p class="article-summary">暂无摘要</p>
+            </article>
+            <article class="article-card fade-in">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#f6ad55">阿里云开发者</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="pub-date">📅 2026-03-04 08:30</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzIzOTU0NTQ0MA==&mid=2247558623&idx=1&sn=335f209f636161c2aabfe03e8894ab6f" target="_blank" rel="noopener">让问题不过夜：交易领域“问诊”Agent实践</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#fff7ed;color:#dd6b20;border:1px solid #dd6b2040">Agent</span><span class="kw-tag" style="background:#fff7ed;color:#dd6b20;border:1px solid #dd6b2040">让问题不</span><span class="kw-tag" style="background:#fff7ed;color:#dd6b20;border:1px solid #dd6b2040">过夜</span><span class="kw-tag" style="background:#fff7ed;color:#dd6b20;border:1px solid #dd6b2040">交易领域</span><span class="kw-tag" style="background:#fff7ed;color:#dd6b20;border:1px solid #dd6b2040">问诊</span></div>
+                <p class="article-summary">暂无摘要</p>
+            </article>
+            <article class="article-card fade-in">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#f6ad55">阿里云开发者</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="pub-date">📅 2026-03-03 08:33</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzIzOTU0NTQ0MA==&mid=2247558554&idx=1&sn=239e1d2c63c0a9a7eb0be1ced653db00" target="_blank" rel="noopener">Skills 真的可以帮我干活了：把工单分析变成一个可复用的 Skill</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#fff7ed;color:#dd6b20;border:1px solid #dd6b2040">Skills</span><span class="kw-tag" style="background:#fff7ed;color:#dd6b20;border:1px solid #dd6b2040">Skill</span><span class="kw-tag" style="background:#fff7ed;color:#dd6b20;border:1px solid #dd6b2040">真的可以</span><span class="kw-tag" style="background:#fff7ed;color:#dd6b20;border:1px solid #dd6b2040">帮我干活</span><span class="kw-tag" style="background:#fff7ed;color:#dd6b20;border:1px solid #dd6b2040">把工单分</span></div>
+                <p class="article-summary">暂无摘要</p>
+            </article>
+            <article class="article-card fade-in">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#48bb78">腾讯技术工程</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="pub-date">📅 2026-03-06 17:16</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MjM5ODYwMjI2MA==&mid=2649800595&idx=1&sn=1c00c2040ffcbd78745e6732daaf73fd" target="_blank" rel="noopener">揭秘！腾讯女程序员的上下班生活</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#f0fff4;color:#276749;border:1px solid #27674940">揭秘</span><span class="kw-tag" style="background:#f0fff4;color:#276749;border:1px solid #27674940">腾讯女程</span><span class="kw-tag" style="background:#f0fff4;color:#276749;border:1px solid #27674940">序员的上</span><span class="kw-tag" style="background:#f0fff4;color:#276749;border:1px solid #27674940">下班生活</span><span class="kw-tag" style="background:#f0fff4;color:#276749;border:1px solid #27674940">精彩</span></div>
+                <p class="article-summary">精彩！！！</p>
+            </article>
+            <article class="article-card fade-in">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#48bb78">腾讯技术工程</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="pub-date">📅 2026-03-04 18:00</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MjM5ODYwMjI2MA==&mid=2649800512&idx=1&sn=39495794598597587bb783b651b1fe3e" target="_blank" rel="noopener">鹅厂员工怎么看Agent自动持续进化？</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#f0fff4;color:#276749;border:1px solid #27674940">Agent</span><span class="kw-tag" style="background:#f0fff4;color:#276749;border:1px solid #27674940">鹅厂员工</span><span class="kw-tag" style="background:#f0fff4;color:#276749;border:1px solid #27674940">怎么看</span><span class="kw-tag" style="background:#f0fff4;color:#276749;border:1px solid #27674940">自动持续</span><span class="kw-tag" style="background:#f0fff4;color:#276749;border:1px solid #27674940">进化</span></div>
+                <p class="article-summary">你怎么看？</p>
+            </article>
+            <article class="article-card fade-in">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#48bb78">腾讯技术工程</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="pub-date">📅 2026-03-02 17:37</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MjM5ODYwMjI2MA==&mid=2649800483&idx=1&sn=080b2791ddb9b01088722831fc04acdc" target="_blank" rel="noopener">AI编程的下半场来了？学会用Agent Skill解决编程的痛点问题</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#f0fff4;color:#276749;border:1px solid #27674940">Agent</span><span class="kw-tag" style="background:#f0fff4;color:#276749;border:1px solid #27674940">编程的下</span><span class="kw-tag" style="background:#f0fff4;color:#276749;border:1px solid #27674940">半场来了</span><span class="kw-tag" style="background:#f0fff4;color:#276749;border:1px solid #27674940">学会用</span><span class="kw-tag" style="background:#f0fff4;color:#276749;border:1px solid #27674940">解决编程</span></div>
+                <p class="article-summary">云开发 8 年的知识沉淀</p>
+            </article>
+  </div>
+
+</div>
+
+<footer>
+  <p>📱 微信公众号监控日报 · 由 <a href="https://wechat2rss.xlab.app">Wechat2RSS</a> 驱动 · 2026年03月09日 15:45</p>
+</footer>
+
+<script>
+function filterArticles(account) {
+  document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('.article-card').forEach(card => {
+    const badge = card.querySelector('.account-badge');
+    if (account === 'all' || (badge && badge.textContent === account)) {
+      card.style.display = '';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+// 错开动画延迟
+document.querySelectorAll('.article-card').forEach((card, i) => {
+  card.style.animationDelay = (i * 0.05) + 's';
+});
+</script>
+</body>
+</html>
