@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📱 微信公众号监控日报 - 2026年03月17日</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts-wordcloud@2.1.0/dist/echarts-wordcloud.min.js"></script>
+<style>
+  :root {
+    --bg: #0f0f1a;
+    --surface: #1a1a2e;
+    --surface2: #16213e;
+    --border: rgba(255,255,255,0.08);
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --accent: #7c3aed;
+    --radius: 12px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Inter','Noto Serif SC',sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 20% 50%, rgba(124,58,237,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(6,182,212,0.06) 0%, transparent 50%);
+  }
+  /* ── Header ── */
+  .header {
+    padding: 48px 24px 32px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(124,58,237,0.05) 0%, transparent 100%);
+  }
+  .header-badge {
+    display: inline-block;
+    padding: 4px 14px;
+    background: rgba(124,58,237,0.2);
+    border: 1px solid rgba(124,58,237,0.4);
+    border-radius: 20px;
+    font-size: 12px;
+    color: #a78bfa;
+    letter-spacing: 0.05em;
+    margin-bottom: 16px;
+    font-family: 'JetBrains Mono',monospace;
+  }
+  .header h1 {
+    font-family: 'Noto Serif SC',serif;
+    font-size: clamp(1.8rem,4vw,2.8rem);
+    font-weight: 700;
+    background: linear-gradient(135deg,#e2e8f0 0%,#a78bfa 50%,#67e8f9 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+  .header-meta { color:var(--text-muted); font-size:14px; margin-top:8px; }
+  /* ── Container ── */
+  .container { max-width:960px; margin:0 auto; padding:32px 24px; }
+  /* ── 总览卡片 ── */
+  .total-card {
+    background: linear-gradient(135deg,rgba(124,58,237,0.15) 0%,rgba(6,182,212,0.1) 100%);
+    border: 1px solid rgba(124,58,237,0.3);
+    border-radius: var(--radius);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .total-card .big-num {
+    font-size: 3rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono',monospace;
+    background: linear-gradient(135deg,#a78bfa,#67e8f9);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .total-card .total-desc { color:var(--text-muted); font-size:14px; line-height:1.6; }
+  /* ── 统计卡片 ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(160px,1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.2s,box-shadow 0.2s;
+  }
+  .stat-card:hover { transform:translateY(-4px); box-shadow:0 12px 32px rgba(0,0,0,0.3); }
+  .stat-num { font-size:2.2rem; font-weight:700; font-family:'JetBrains Mono',monospace; line-height:1; margin-bottom:6px; }
+  .stat-label { font-size:13px; color:var(--text-muted); }
+  /* ── 词云区域 ── */
+  .wordcloud-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 40px;
+  }
+  .section-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::before {
+    content: '';
+    display: inline-block;
+    width: 3px;
+    height: 16px;
+    background: linear-gradient(#a78bfa,#67e8f9);
+    border-radius: 2px;
+  }
+  #wordcloud { width:100%; height:360px; }
+  /* ── 过滤栏 ── */
+  .filter-bar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:28px; }
+  .filter-btn {
+    padding: 7px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .filter-btn:hover,.filter-btn.active {
+    background: rgba(124,58,237,0.2);
+    border-color: rgba(124,58,237,0.5);
+    color: #a78bfa;
+  }
+  /* ── 文章卡片 ── */
+  .article-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 16px;
+    transition: transform 0.2s,box-shadow 0.2s,border-color 0.2s;
+  }
+  .article-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.3);
+    border-color: rgba(124,58,237,0.3);
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .account-badge {
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+  }
+  .source-badge {
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-size: 11px;
+    background: rgba(255,255,255,0.08);
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono',monospace;
+  }
+  .ft-badge {
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-family: 'JetBrains Mono',monospace;
+  }
+  .ft-full { background:rgba(72,187,120,0.15); color:#9ae6b4; border:1px solid rgba(72,187,120,0.3); }
+  .ft-rss  { background:rgba(160,174,192,0.1);  color:#94a3b8; border:1px solid rgba(160,174,192,0.2); }
+  .pub-date { font-size:12px; color:var(--text-muted); margin-left:auto; font-family:'JetBrains Mono',monospace; }
+  .article-title { font-family:'Noto Serif SC',serif; font-size:1.1rem; font-weight:600; margin-bottom:12px; line-height:1.5; }
+  .article-title a { color:var(--text); text-decoration:none; transition:color 0.2s; }
+  .article-title a:hover { color:#a78bfa; }
+  .keywords { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+  .kw-tag {
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .kw-tag:hover { opacity:0.75; }
+  .article-summary { font-size:14px; color:var(--text-muted); line-height:1.8; }
+  /* ── 动画 ── */
+  @keyframes fadeInUp {
+    from { opacity:0; transform:translateY(20px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  .fade-in { animation:fadeInUp 0.4s ease-out forwards; opacity:0; }
+  /* ── 空状态 ── */
+  .empty-state { text-align:center; padding:60px 24px; color:var(--text-muted); }
+  /* ── 页脚 ── */
+  footer {
+    text-align: center;
+    padding: 32px 24px;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 13px;
+    font-family: 'JetBrains Mono',monospace;
+  }
+  footer a { color:#a78bfa; text-decoration:none; }
+  @media (max-width:640px) {
+    .pub-date { display:none; }
+    .stats-row { grid-template-columns:repeat(2,1fr); }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-badge">WECHAT MONITOR · 2026年03月17日</div>
+  <h1>📱 微信公众号技术日报</h1>
+  <p class="header-meta">生成时间：2026年03月17日 10:15 &nbsp;·&nbsp; 数据来源：Wechat2RSS + 搜狗微信 &nbsp;·&nbsp; 摘要：TextRank全文提取</p>
+</header>
+
+<div class="container">
+
+  <!-- 总览 -->
+  <div class="total-card">
+    <div class="big-num">27</div>
+    <div class="total-desc">
+      过去 <strong style="color:#a78bfa">7 天</strong> 内共收录文章<br>
+      覆盖 <strong style="color:#67e8f9">3</strong> 个公众号
+    </div>
+  </div>
+
+  <!-- 各账号统计 -->
+  <div class="stats-row">
+    
+        <div class="stat-card" style="border-left:4px solid #667eea">
+            <div class="stat-num" style="color:#667eea">20</div>
+            <div class="stat-label">机器之心</div>
+        </div>
+        <div class="stat-card" style="border-left:4px solid #f6ad55">
+            <div class="stat-num" style="color:#f6ad55">4</div>
+            <div class="stat-label">阿里云开发者</div>
+        </div>
+        <div class="stat-card" style="border-left:4px solid #48bb78">
+            <div class="stat-num" style="color:#48bb78">3</div>
+            <div class="stat-label">腾讯技术工程</div>
+        </div>
+        <div class="stat-card" style="border-left:4px solid #ed64a6">
+            <div class="stat-num" style="color:#ed64a6">0</div>
+            <div class="stat-label">vLLM</div>
+        </div>
+  </div>
+
+  <!-- 词云 -->
+  <div class="wordcloud-section">
+    <div class="section-title">🔑 本期热词词云</div>
+    <div id="wordcloud"></div>
+  </div>
+
+  <!-- 过滤按钮 -->
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="filterArticles('all',this)">全部 (27)</button>
+    <button class="filter-btn" onclick="filterArticles('机器之心',this)">机器之心 (20)</button><button class="filter-btn" onclick="filterArticles('阿里云开发者',this)">阿里云开发者 (4)</button><button class="filter-btn" onclick="filterArticles('腾讯技术工程',this)">腾讯技术工程 (3)</button>
+  </div>
+
+  <!-- 文章列表 -->
+  <div id="articles-container">
+    
+            <article class="article-card fade-in" data-account="机器之心">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="ft-badge ft-full">全文摘要</span>
+                    <span class="pub-date">📅 2026-03-16 11:50</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651021695&idx=1&sn=cf9c302c1497b4bbc9461f257549e1c8" target="_blank" rel="noopener">清华团队悄悄开源了一只「教学龙虾」：国内首个L4级AI课堂来了</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">开源</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">OpenMAIC</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">大模型</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">清华团队</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">了一只</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">教学龙虾</span></div>
+                <p class="article-summary">L4 自动驾驶还没来，L4 级 AI 课堂先开源了。先看一个真实 case：OpenClaw 这么火，如果一个零基础用户也想养一只属于自己的「龙虾」，真的需要花钱找人代装、代配环境吗。过去几年，AI 在教育领域的角色一直很模糊。</p>
+            </article>
+            <article class="article-card fade-in" data-account="机器之心">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="ft-badge ft-full">全文摘要</span>
+                    <span class="pub-date">📅 2026-03-16 11:50</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651021695&idx=2&sn=dfb05cf45cec9e723315eafd701ccd46" target="_blank" rel="noopener">DeepSeek、GPT、Qwen，所有大模型架构图都有，Karpathy：宝藏画廊！</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">大模型</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">DeepSeek</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">Qwen</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">LLM</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">Llama</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">GPT</span></div>
+                <p class="article-summary">最近，AI 研究者 Sebastian Raschka 就尝试给了这样一张图，他将过去几年主流大模型的结构重新绘制，并整理成了一个在线图谱 「LLM Architecture Gallery」。https://sebastianraschka.com/llm-architecture-gallery/。https://github.com/rasbt/llm-architecture-gallery。</p>
+            </article>
+            <article class="article-card fade-in" data-account="机器之心">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="ft-badge ft-full">全文摘要</span>
+                    <span class="pub-date">📅 2026-03-16 11:50</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651021695&idx=3&sn=f8b94c4a3eccf08bd72eed11c4ca2798" target="_blank" rel="noopener">以「图」破局，HyperOffload定义超节点存储管理新范式</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">HyperOffload</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">破局</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">定义超节</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">点存储管</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">理新范式</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">MindSpore</span></div>
+                <p class="article-summary">HyperOffload: Graph-Driven Hierarchical Memory Management for Large Language Models on SuperNode Architectures。(arXiv: 2602.00748)。https://arxiv.org/abs/2602.00748。</p>
+            </article>
+            <article class="article-card fade-in" data-account="机器之心">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="ft-badge ft-full">全文摘要</span>
+                    <span class="pub-date">📅 2026-03-15 09:17</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651021511&idx=1&sn=cb3ab9cb9de227e10b337643099ca960" target="_blank" rel="noopener">arXiv变天：将脱离康奈尔大学独立，招聘CEO，网友：以后还能白嫖吗？</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">arXiv</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">CEO</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">奈尔大学</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">Ginsparg</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">变天</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">将脱离康</span></div>
+                <p class="article-summary">arXiv 现在是全球最有影响力的电子预印本系统，始建于 1991 年 8 月，由 Paul Ginsparg 创立。1993 年，随着 Mosaic 浏览器发布，Ginsparg 为 arXiv 搭建了网页界面 —— 这个万维网时代的「原住民」由此诞生。然而，arXiv 的真正转折点发生在 2001 年：由于洛斯阿拉莫斯实验室内部动荡，Ginsparg 带着项目回归母校康奈尔大学，arXiv 也随之落户该校图书馆。</p>
+            </article>
+            <article class="article-card fade-in" data-account="机器之心">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="ft-badge ft-full">全文摘要</span>
+                    <span class="pub-date">📅 2026-03-15 09:17</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651021511&idx=2&sn=e5194bc09c7ddbdeb96f773132df10e5" target="_blank" rel="noopener">OpenClaw带火AI记忆，DeepMind用混合记忆把3D重建拉到近2万帧</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">LoGeR</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">对齐</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">TTT</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">记忆</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">万帧</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">OpenClaw</span></div>
+                <p class="article-summary">过程中，LoGeR 通过将视频流分块处理，利用强大的双向先验进行高保真度的块内推理。https://loger-project.github.io/。在标准基准测试和重新设计的 VBR 数据集（包含最多 19000 帧的序列）上进行评估时，LoGeR 明显超越了先前的前馈方法，在 KITTI 数据集上将绝对轨迹误差（ATE）降低了超过 74%，并且在前所未有的时间跨度上实现了稳健、全球一致的重建。</p>
+            </article>
+            <article class="article-card fade-in" data-account="机器之心">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="ft-badge ft-full">全文摘要</span>
+                    <span class="pub-date">📅 2026-03-15 09:17</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651021511&idx=3&sn=08a96e73521c602bd5066af107cdd9ff" target="_blank" rel="noopener">ICLR 2026｜多模态大模型真的理解情绪吗？MME-Emotion给出了系统答案</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">多模态</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">大模型</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">MME-Emotion</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">Agent</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">情绪吗</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">LLM</span></div>
+                <p class="article-summary">论文标题：MME-Emotion: A Holistic Evaluation Benchmark For Emotional Intelligence in Multimodal Large Language Models。https://mme-emotion.github.io。https://github.com/FunAudioLLM/MME-Emotion。</p>
+            </article>
+            <article class="article-card fade-in" data-account="机器之心">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="ft-badge ft-full">全文摘要</span>
+                    <span class="pub-date">📅 2026-03-14 14:31</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651021485&idx=1&sn=7b2f195938681e0ec56c823a74234746" target="_blank" rel="noopener">内测输给Gemini，还套壳？！Meta千亿自研大模型遭延期</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">大模型</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">Gemini</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">Meta</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">Avocado</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">还套壳</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">千亿自研</span></div>
+                <p class="article-summary">Meta 的 AI 计划，突然踩了刹车。而这个还没熟的 Avocado 正是来自 Meta 内部的新 AI 实验室：TBD Lab（To Be Determined Lab）。报道称，有研究员在 Avocado 发布前离职， Alexandr Wang 与 Meta 产品负责人之间存在分歧，争论焦点是 AI 如何提升广告业务。</p>
+            </article>
+            <article class="article-card fade-in" data-account="机器之心">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="ft-badge ft-full">全文摘要</span>
+                    <span class="pub-date">📅 2026-03-14 14:31</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651021485&idx=2&sn=26814d899b7ac8328688a0db80914f20" target="_blank" rel="noopener">不用任何人类语言训练，大模型反而更强了？</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">预训练</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">大模型</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">NCA</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">训练</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">Transformer</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">人类语言</span></div>
+                <p class="article-summary">神经细胞自动机（Neural Cellular Automata, NCA）生成的数据上对 Transformer 进行预预训练（pre-pre-training）—— 这些数据完全是合成的，不包含任何语言内容。https://hanseungwook.github.io/blog/nca-pre-pre-training/。在相同的 token 预算（每种设置均为 1.64 亿 tokens） 下，使用 NCA 进行预预训练（pre-pre-training） 的模型优于以下几种方案：。</p>
+            </article>
+            <article class="article-card fade-in" data-account="机器之心">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="ft-badge ft-full">全文摘要</span>
+                    <span class="pub-date">📅 2026-03-14 14:31</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651021485&idx=3&sn=d5d9f586decadbb2abd5a146cb2c4fae" target="_blank" rel="noopener">小模型读书大模型思考：上海AI Lab提出新知识推理解耦方法DRIFT，高效且「防越狱」</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">大模型</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">DRIFT</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">LLM</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">长上下文</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">安全</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">推理模型</span></div>
+                <p class="article-summary">实验结果表明：DRIFT 显著提升推理效率，并在高压缩比设置下仍保持甚至提升任务性能，展示了 reading–reasoning 解耦的实际价值。此外，DeepSeek 的 Engram 通过条件化参数记忆，将可复用的知识模式从 Transformer 主干中分离出来，在架构层面实现了知识存储与推理计算的解耦，从而提升效率与性能。提出 reading–reasoning 解耦的结构性视角：。</p>
+            </article>
+            <article class="article-card fade-in" data-account="机器之心">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="ft-badge ft-full">全文摘要</span>
+                    <span class="pub-date">📅 2026-03-13 11:57</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651021367&idx=1&sn=6934df588734d4ea1f12eccf40737d0b" target="_blank" rel="noopener">3亿美元巨额融资，AI视频新独角兽爱诗科技，正在抢跑「实时世界模型」</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">爱诗科技</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">多模态</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">PixVerse</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">大模型</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">视频生成</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">实时世界</span></div>
+                <p class="article-summary">AI 视频生成赛道上，爱诗科技本次融资金额仅次于上个月 Runway 在 E 轮的 3.15 亿美元，成为了截至目前领域内最大的融资之一。进入 2026 年，AI 视频生成技术迭代速度继续加快。3 亿美元的充足弹药，不仅意味着爱诗科技能够更从容地应对大模型训练以及规模化推理带来的庞大算力消耗，也预示着下游的内容产业正加速兑现「AI 降本增效与体验革新」的商业逻辑。</p>
+            </article>
+            <article class="article-card fade-in" data-account="机器之心">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="ft-badge ft-full">全文摘要</span>
+                    <span class="pub-date">📅 2026-03-13 11:57</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651021367&idx=2&sn=08e63953264aa59b4e919e3de9a62465" target="_blank" rel="noopener">这年头学不会数理化，只能怪自己懒，谷歌NotebookLM上新，秒出科普视频</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">谷歌</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">秒出科普</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">只能怪自</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">己懒</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">上新</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">NotebookLM</span></div>
+                <p class="article-summary">目前，该功能面向 Google AI Ultra 订阅用户（18 岁以上）开放，支持网页和移动端使用。https://notebooklm.google.com/。我们也上手试了下，上传一张蒙娜丽莎的图片后，系统会自动生成一段作品介绍，点击右侧栏的「Video Overview」， AI 便开始读取文本、提取关键信息、构建可视化画面并添加旁白。</p>
+            </article>
+            <article class="article-card fade-in" data-account="机器之心">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="ft-badge ft-full">全文摘要</span>
+                    <span class="pub-date">📅 2026-03-13 11:57</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651021367&idx=3&sn=b7b35b16e17903e153208b3dbe638c74" target="_blank" rel="noopener">有效思考激发多模态智能体决策潜力！清华&amp;北大&amp;腾讯联合提出GTR训练新框架</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">多模态</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">强化学习</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">GTR</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">大模型</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">SFT</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">VLM</span></div>
+                <p class="article-summary">思维引导的强化学习（Guided Thought Reinforcement, GTR）框架，通过自动化修正器提供过程引导，在 RL 训练中实时优化模型的思路，且无需依赖人类的精细标注。思维引导的强化学习（Guided Thought Reinforcement, GTR）框架。GTR: Guided Thought Reinforcement Prevents Thought Collapse in RL-based VLM Agent Training。</p>
+            </article>
+            <article class="article-card fade-in" data-account="机器之心">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="ft-badge ft-full">全文摘要</span>
+                    <span class="pub-date">📅 2026-03-12 17:27</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651021287&idx=1&sn=3ca66cd1501888b3aee50055a269c1b1" target="_blank" rel="noopener">2秒终结AI 3D不可能三角，我们和VAST首席科学家曹炎培聊了聊</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">VAST</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">Tripo</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">首席科学</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">家曹炎培</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">Mesh</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">秒终结</span></div>
+                <p class="article-summary">VAST 最新发布的 Tripo P1.0，首次在原生三维空间中实现概率生成，2 秒内即可输出专业建模师级别的 3D 资产，效率较现有方案提升百倍以上。，在 Tripo Studio 平台上实测只需约 2 秒即可生成结构化 3D 网格。P1.0 生成的 Mesh 拥有更加干净、智能的拓扑结构，整体布线规整，几何形体与输入图像高度一致。</p>
+            </article>
+            <article class="article-card fade-in" data-account="机器之心">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="ft-badge ft-full">全文摘要</span>
+                    <span class="pub-date">📅 2026-03-12 17:27</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651021287&idx=2&sn=4b1b78f7116a4ec8c049dafb1e836f8f" target="_blank" rel="noopener">不用排长龙！JiuwenClaw助你一键养龙虾！</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">JiuwenClaw</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">Agent</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">龙虾</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">com</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">养龙虾</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">https</span></div>
+                <p class="article-summary">https://gitcode.com/openJiuwen/jiuwenclaw。https://github.com/openJiuwen-ai/jiuwenclaw。JiuwenClaw 有个特别有意思的设计 —— 给 AI 配了一个。</p>
+            </article>
+            <article class="article-card fade-in" data-account="机器之心">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="ft-badge ft-full">全文摘要</span>
+                    <span class="pub-date">📅 2026-03-12 17:27</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651021287&idx=3&sn=01d8219d493a76633dab9217605fd03a" target="_blank" rel="noopener">AI下半场的战场，从Agent记忆体正式打响</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">Agent</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">memory</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">Memory</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">下半场的</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">战场</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">记忆体正</span></div>
+                <p class="article-summary">https://github.com/AgentMemoryWorld/Awesome-Agent-Memory。这篇 Agent Memory 综述的核心是：当 Agent 从短对话走向长周期任务，真正爆炸的需求的不是仅仅模型的智能，而是。Agent 是否具备真正的 memory 机制，能够存储、抽象、压缩、更新甚至遗忘信息，并在长期过程中持续演化。</p>
+            </article>
+            <article class="article-card fade-in" data-account="机器之心">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="ft-badge ft-full">全文摘要</span>
+                    <span class="pub-date">📅 2026-03-12 17:27</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651021287&idx=4&sn=b0e3f6b85cdb67934f7f8974dbce064d" target="_blank" rel="noopener">复旦北大联合美团LongCat提出TDAR：用“粗思考，细求证”破解Block Diffusion的速度精度悖论</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">Block</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">TDAR</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">BACD</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">TCCF</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">粗思考</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">细求证</span></div>
+                <p class="article-summary">近期，复旦大学 NLP 实验室（FDU NLP）、北京大学知识计算实验室（KCL）联合美团 LongCat Team 提出了一种 Block Diffusion 推理模型 Test-Time Scaling 新框架 TDAR，通过引入。“粗思考，细求证” (Think Coarse Critic Fine, TCCF) 范式与有界自适应置信度解码 (Bounded Adaptive Confidence Decoding, BACD)。为了解决上述痛点，研究团队提出了一套统一的测试时扩展框架 TDAR，如下图所示，该框架包含两个核心设计：有界自适应置信度解码（BACD）与 “粗思考，细求证” (Think Coarse Critic Fine, TCCF) 范式。</p>
+            </article>
+            <article class="article-card fade-in" data-account="机器之心">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="ft-badge ft-full">全文摘要</span>
+                    <span class="pub-date">📅 2026-03-11 17:36</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651021034&idx=1&sn=056878fc4cba6666ae38a73e59a55d58" target="_blank" rel="noopener">一只金融龙虾！AlphaClaw来了</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">AlphaClaw</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">量化</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">Skill</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">AlphaEngine</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">提示词</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">Excel</span></div>
+                <p class="article-summary">一款专为金融人打造的 AI 工具来了，它就是 AlphaClaw。AlphaClaw 是熵简科技推出的金融投研 AI 工具，搭载于 AlphaEngine 平台。AlphaClaw 会调用刚创建的 Skill 作为分析框架，结合 AlphaEngine 平台内置的研报数据，输出一份完整的投资建议 —— 不是空泛的「。</p>
+            </article>
+            <article class="article-card fade-in" data-account="机器之心">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="ft-badge ft-full">全文摘要</span>
+                    <span class="pub-date">📅 2026-03-11 17:36</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651021034&idx=2&sn=f6c14d3ac9a98f1a4f428c4a486d351a" target="_blank" rel="noopener">几千亿美元远远不够！黄仁勋亲笔长文：AI 是人类历史上最大的基建浪潮</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">基础设施</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">人工智能</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">开源</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">黄仁勋亲</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">笔长文</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">是人类历</span></div>
+                <p class="article-summary">在「龙虾热」蔓延全国的此刻，大家把越来越多的工作交给 AI。AI as Infrastructure。能源是 AI 基础设施的「第一性原理」，也是决定系统智能产出上限的硬约束。</p>
+            </article>
+            <article class="article-card fade-in" data-account="机器之心">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="ft-badge ft-full">全文摘要</span>
+                    <span class="pub-date">📅 2026-03-11 17:36</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651021034&idx=3&sn=503bb858ed77b7746c7a2ccdea7821b6" target="_blank" rel="noopener">UIUC清华微软联合提出PlugMem：当Agent记忆告别「经历」，开始存储「经验」</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">Agent</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">PlugMem</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">记忆</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">经历</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">LLM</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">RAG</span></div>
+                <p class="article-summary">随着大语言模型 Agent 开始在对话、问答与复杂交互环境中长期运行，“记忆该如何设计” 正在成为一个绕不开的核心问题。LLM Agent 的任务无关记忆模块 PlugMem。基于这一观察，PlugMem 提出了一种与主流 Agent 记忆设计明显不同的思路：。</p>
+            </article>
+            <article class="article-card fade-in" data-account="机器之心">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#667eea">机器之心</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="ft-badge ft-full">全文摘要</span>
+                    <span class="pub-date">📅 2026-03-11 17:36</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzA3MzI4MjgzMw==&mid=2651021034&idx=4&sn=5276b517815d3d26b0aa178e4deb2446" target="_blank" rel="noopener">CVPR 2026 | 还在为AI「鬼画符」发愁？TextPecker即插即用破解文字渲染难题</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">TextPecker</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">Qwen</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">多模态</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">强化学习</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">对齐</span><span class="kw-tag" style="background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa40">大模型</span></div>
+                <p class="article-summary">视觉文本渲染（Visual Text Rendering, VTR）。论文标题：TextPecker: Rewarding Structural Anomaly Quantification   for Enhancing Visual Text Rendering。https://github.com/CIawevy/TextPecker。</p>
+            </article>
+            <article class="article-card fade-in" data-account="阿里云开发者">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#f6ad55">阿里云开发者</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="ft-badge ft-full">全文摘要</span>
+                    <span class="pub-date">📅 2026-03-16 08:31</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzIzOTU0NTQ0MA==&mid=2247558896&idx=1&sn=f921e42175ae76b9a9e7771676c000b0" target="_blank" rel="noopener">如何定义“人味儿”？——HeartBench评测体系建设实践</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#2a1f0e;color:#fbd38d;border:1px solid #fbd38d40">LLM</span><span class="kw-tag" style="background:#2a1f0e;color:#fbd38d;border:1px solid #fbd38d40">人味儿</span><span class="kw-tag" style="background:#2a1f0e;color:#fbd38d;border:1px solid #fbd38d40">Benchmark</span><span class="kw-tag" style="background:#2a1f0e;color:#fbd38d;border:1px solid #fbd38d40">HeartBench</span><span class="kw-tag" style="background:#2a1f0e;color:#fbd38d;border:1px solid #fbd38d40">如何定义</span><span class="kw-tag" style="background:#2a1f0e;color:#fbd38d;border:1px solid #fbd38d40">大模型</span></div>
+                <p class="article-summary">一、背景：AI下半场从解决问题到定义问题。目前 AI 模型的价值函数非常脆弱，甚至可以说几乎没有。Ilya 相信，如果能为 AI 构建起类似人类这样鲁棒的价值函数，将是解决泛化问题的关键一步。</p>
+            </article>
+            <article class="article-card fade-in" data-account="阿里云开发者">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#f6ad55">阿里云开发者</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="ft-badge ft-full">全文摘要</span>
+                    <span class="pub-date">📅 2026-03-13 08:31</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzIzOTU0NTQ0MA==&mid=2247558894&idx=1&sn=66e97f3df165135113bc3ea000873f1b" target="_blank" rel="noopener">你的 AI Agent 真的在受控运行吗？</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#2a1f0e;color:#fbd38d;border:1px solid #fbd38d40">Agent</span><span class="kw-tag" style="background:#2a1f0e;color:#fbd38d;border:1px solid #fbd38d40">message</span><span class="kw-tag" style="background:#2a1f0e;color:#fbd38d;border:1px solid #fbd38d40">安全</span><span class="kw-tag" style="background:#2a1f0e;color:#fbd38d;border:1px solid #fbd38d40">工具调用</span><span class="kw-tag" style="background:#2a1f0e;color:#fbd38d;border:1px solid #fbd38d40">content</span><span class="kw-tag" style="background:#2a1f0e;color:#fbd38d;border:1px solid #fbd38d40">Session</span></div>
+                <p class="article-summary">OpenClaw 是 2026 年最受关注的开源 AI Agent 平台之一。2026 年初，多家安全厂商集中披露了一批 AI Agent 相关漏洞和事件：。1.2 AI Agent 的攻击面。</p>
+            </article>
+            <article class="article-card fade-in" data-account="阿里云开发者">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#f6ad55">阿里云开发者</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="ft-badge ft-full">全文摘要</span>
+                    <span class="pub-date">📅 2026-03-12 08:31</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzIzOTU0NTQ0MA==&mid=2247558816&idx=1&sn=87b815f28a6bb92939c83d7b84f42872" target="_blank" rel="noopener">做AI产品三年复盘，我看到的变与不变</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#2a1f0e;color:#fbd38d;border:1px solid #fbd38d40">Claude</span><span class="kw-tag" style="background:#2a1f0e;color:#fbd38d;border:1px solid #fbd38d40">Agent</span><span class="kw-tag" style="background:#2a1f0e;color:#fbd38d;border:1px solid #fbd38d40">Context</span><span class="kw-tag" style="background:#2a1f0e;color:#fbd38d;border:1px solid #fbd38d40">产品</span><span class="kw-tag" style="background:#2a1f0e;color:#fbd38d;border:1px solid #fbd38d40">Manus</span><span class="kw-tag" style="background:#2a1f0e;color:#fbd38d;border:1px solid #fbd38d40">LLM</span></div>
+                <p class="article-summary">第一部分，我会从一名 AI 产品 Agent 工程师的视角，聊聊我亲身经历的一些变化，以及在这些变化里我越来越确信的一件事：有些东西一直在变，但也有些东西几乎没怎么变过。看整个行业，今天GitHub上4%的公开代码提交都是由AI Agent生成的，预估26年底可以达到20%以上。「第二阶段：Copilot，让 AI 开始“陪我写代码”」。</p>
+            </article>
+            <article class="article-card fade-in" data-account="阿里云开发者">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#f6ad55">阿里云开发者</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="ft-badge ft-full">全文摘要</span>
+                    <span class="pub-date">📅 2026-03-11 08:30</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MzIzOTU0NTQ0MA==&mid=2247558791&idx=1&sn=1c17fc2013bd157f9816e401a853679a" target="_blank" rel="noopener">构建会思考的测试Agent：从自动化到自主智能的演进</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#2a1f0e;color:#fbd38d;border:1px solid #fbd38d40">Agent</span><span class="kw-tag" style="background:#2a1f0e;color:#fbd38d;border:1px solid #fbd38d40">RAG</span><span class="kw-tag" style="background:#2a1f0e;color:#fbd38d;border:1px solid #fbd38d40">API</span><span class="kw-tag" style="background:#2a1f0e;color:#fbd38d;border:1px solid #fbd38d40">LLM</span><span class="kw-tag" style="background:#2a1f0e;color:#fbd38d;border:1px solid #fbd38d40">Skill</span><span class="kw-tag" style="background:#2a1f0e;color:#fbd38d;border:1px solid #fbd38d40">从自动化</span></div>
+                <p class="article-summary">，通过将大语言模型（LLM）、多Agent协同架构与Skill Engine技能框架相结合，实现了从传统自动化测试向。Skill Engine 技能引擎。人设、知识库、履职规范、自主意识、技能集五位一体配置，Multi-Agent 协作引擎驱动被动任务执行，Skill Engine 自主引擎驱动主动决策与工作，构成完整的智能体能力闭环。</p>
+            </article>
+            <article class="article-card fade-in" data-account="腾讯技术工程">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#48bb78">腾讯技术工程</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="ft-badge ft-full">全文摘要</span>
+                    <span class="pub-date">📅 2026-03-16 17:37</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MjM5ODYwMjI2MA==&mid=2649800749&idx=1&sn=81457fa979262f0a230b4ebba2a9aa7c" target="_blank" rel="noopener">重磅！腾讯QQ机器人接入OpenClaw，官方“养虾”指南来了</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#0e2a1a;color:#9ae6b4;border:1px solid #9ae6b440">OpenClaw</span><span class="kw-tag" style="background:#0e2a1a;color:#9ae6b4;border:1px solid #9ae6b440">openclaw</span><span class="kw-tag" style="background:#0e2a1a;color:#9ae6b4;border:1px solid #9ae6b440">skills</span><span class="kw-tag" style="background:#0e2a1a;color:#9ae6b4;border:1px solid #9ae6b440">QQBot</span><span class="kw-tag" style="background:#0e2a1a;color:#9ae6b4;border:1px solid #9ae6b440">openclaw-qqbot</span><span class="kw-tag" style="background:#0e2a1a;color:#9ae6b4;border:1px solid #9ae6b440">qqbot</span></div>
+                <p class="article-summary">https://q.qq.com/qqbot/openclaw/login.html。QQ 作为 OpenClaw 的通讯渠道，需要在 OpenClaw 安装配置 QQBot 插件，才能与 QQBot 通信。https://github.com/tencent-connect/openclaw-qqbot。</p>
+            </article>
+            <article class="article-card fade-in" data-account="腾讯技术工程">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#48bb78">腾讯技术工程</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="ft-badge ft-full">全文摘要</span>
+                    <span class="pub-date">📅 2026-03-13 17:37</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MjM5ODYwMjI2MA==&mid=2649800696&idx=1&sn=228bef9f5b56ee57f272dfb6204c9b41" target="_blank" rel="noopener">Skills开发技能指南：OpenClaw也好，Skills也好，都别脱离具体场景谈方案</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#0e2a1a;color:#9ae6b4;border:1px solid #9ae6b440">Agent</span><span class="kw-tag" style="background:#0e2a1a;color:#9ae6b4;border:1px solid #9ae6b440">也好</span><span class="kw-tag" style="background:#0e2a1a;color:#9ae6b4;border:1px solid #9ae6b440">谈方案</span><span class="kw-tag" style="background:#0e2a1a;color:#9ae6b4;border:1px solid #9ae6b440">我们需要</span><span class="kw-tag" style="background:#0e2a1a;color:#9ae6b4;border:1px solid #9ae6b440">开发技能</span><span class="kw-tag" style="background:#0e2a1a;color:#9ae6b4;border:1px solid #9ae6b440">指南</span></div>
+                <p class="article-summary">公共的Prompt就是Skills。试想我们把所有东西都堆在桌面上，桌面就会很乱，结果就是AI开始胡言乱语，幻觉增多，因此，Skills的设计理念是：。也简单，搞个分级缓存，当输入Prompt的时候，不要带上全量的Skills信息，而是最基本的元信息，AI会按照语意进行匹配，匹配到了才会加载实际的内容，这就是渐进式加载，官方叫：渐进式披露，如下图所示：。</p>
+            </article>
+            <article class="article-card fade-in" data-account="腾讯技术工程">
+                <div class="card-header">
+                    <span class="account-badge" style="background:#48bb78">腾讯技术工程</span>
+                    <span class="source-badge">RSS</span>
+                    <span class="ft-badge ft-full">全文摘要</span>
+                    <span class="pub-date">📅 2026-03-11 19:47</span>
+                </div>
+                <h3 class="article-title">
+                    <a href="https://mp.weixin.qq.com/s?__biz=MjM5ODYwMjI2MA==&mid=2649800667&idx=1&sn=829e2103ca6256fcb3dcec1936e84b74" target="_blank" rel="noopener">警惕！“养龙虾”风险，一键给你的Openclaw做安全体检</a>
+                </h3>
+                <div class="keywords"><span class="kw-tag" style="background:#0e2a1a;color:#9ae6b4;border:1px solid #9ae6b440">安全</span><span class="kw-tag" style="background:#0e2a1a;color:#9ae6b4;border:1px solid #9ae6b440">Agent</span><span class="kw-tag" style="background:#0e2a1a;color:#9ae6b4;border:1px solid #9ae6b440">OpenClaw</span><span class="kw-tag" style="background:#0e2a1a;color:#9ae6b4;border:1px solid #9ae6b440">Skill</span><span class="kw-tag" style="background:#0e2a1a;color:#9ae6b4;border:1px solid #9ae6b440">体检</span><span class="kw-tag" style="background:#0e2a1a;color:#9ae6b4;border:1px solid #9ae6b440">风险</span></div>
+                <p class="article-summary">2026 年初，OpenClaw 在短短数周内狂揽超。「OpenClaw 安全体检」功能——无需折腾复杂配置，只要一句话，就能让 AI 助理自动完成全面体检与 Skill 风险的前置评估，帮助大家用得更放心、更高效。由于黑客使用 AI 调用工具发起扫描与攻击效率极高，一个全新的 OpenClaw 服务在公网上线几分钟内就会遭到疯狂敲门与探测。</p>
+            </article>
+  </div>
+
+</div>
+
+<footer>
+  <p>📱 微信公众号监控日报 · <a href="https://wechat2rss.xlab.app">Wechat2RSS</a> · TextRank摘要 · 2026年03月17日 10:15</p>
+</footer>
+
+<script>
+// ── 词云 ──────────────────────────────────────────────────────────────────
+(function() {
+  const chart = echarts.init(document.getElementById('wordcloud'));
+  const wcData = [{"name": "大模型", "value": 20}, {"name": "Agent", "value": 17}, {"name": "多模态", "value": 8}, {"name": "LLM", "value": 7}, {"name": "安全", "value": 5}, {"name": "开源", "value": 4}, {"name": "Qwen", "value": 4}, {"name": "DeepSeek", "value": 3}, {"name": "OpenClaw", "value": 3}, {"name": "Gemini", "value": 3}, {"name": "Skill", "value": 3}, {"name": "对齐", "value": 2}, {"name": "记忆", "value": 2}, {"name": "强化学习", "value": 2}, {"name": "RAG", "value": 2}, {"name": "OpenMAIC", "value": 1}, {"name": "清华团队", "value": 1}, {"name": "了一只", "value": 1}, {"name": "教学龙虾", "value": 1}, {"name": "Llama", "value": 1}, {"name": "GPT", "value": 1}, {"name": "HyperOffload", "value": 1}, {"name": "破局", "value": 1}, {"name": "定义超节", "value": 1}, {"name": "点存储管", "value": 1}, {"name": "理新范式", "value": 1}, {"name": "MindSpore", "value": 1}, {"name": "arXiv", "value": 1}, {"name": "CEO", "value": 1}, {"name": "奈尔大学", "value": 1}, {"name": "Ginsparg", "value": 1}, {"name": "变天", "value": 1}, {"name": "将脱离康", "value": 1}, {"name": "LoGeR", "value": 1}, {"name": "TTT", "value": 1}, {"name": "万帧", "value": 1}, {"name": "MME-Emotion", "value": 1}, {"name": "情绪吗", "value": 1}, {"name": "Meta", "value": 1}, {"name": "Avocado", "value": 1}, {"name": "还套壳", "value": 1}, {"name": "千亿自研", "value": 1}, {"name": "预训练", "value": 1}, {"name": "NCA", "value": 1}, {"name": "训练", "value": 1}, {"name": "Transformer", "value": 1}, {"name": "人类语言", "value": 1}, {"name": "DRIFT", "value": 1}, {"name": "长上下文", "value": 1}, {"name": "推理模型", "value": 1}, {"name": "爱诗科技", "value": 1}, {"name": "PixVerse", "value": 1}, {"name": "视频生成", "value": 1}, {"name": "实时世界", "value": 1}, {"name": "谷歌", "value": 1}, {"name": "秒出科普", "value": 1}, {"name": "只能怪自", "value": 1}, {"name": "己懒", "value": 1}, {"name": "上新", "value": 1}, {"name": "NotebookLM", "value": 1}, {"name": "GTR", "value": 1}, {"name": "SFT", "value": 1}, {"name": "VLM", "value": 1}, {"name": "VAST", "value": 1}, {"name": "Tripo", "value": 1}, {"name": "首席科学", "value": 1}, {"name": "家曹炎培", "value": 1}, {"name": "Mesh", "value": 1}, {"name": "秒终结", "value": 1}, {"name": "JiuwenClaw", "value": 1}, {"name": "龙虾", "value": 1}, {"name": "com", "value": 1}, {"name": "养龙虾", "value": 1}, {"name": "https", "value": 1}, {"name": "memory", "value": 1}, {"name": "Memory", "value": 1}, {"name": "下半场的", "value": 1}, {"name": "战场", "value": 1}, {"name": "记忆体正", "value": 1}, {"name": "Block", "value": 1}];
+  const colors = [
+    '#a78bfa','#67e8f9','#f6ad55','#48bb78','#ed64a6',
+    '#fc8181','#63b3ed','#b794f4','#76e4f7','#fbd38d',
+  ];
+  chart.setOption({
+    backgroundColor: 'transparent',
+    series: [{
+      type: 'wordCloud',
+      shape: 'circle',
+      left: 'center',
+      top: 'center',
+      width: '95%',
+      height: '95%',
+      right: null,
+      bottom: null,
+      sizeRange: [12, 60],
+      rotationRange: [-45, 45],
+      rotationStep: 15,
+      gridSize: 8,
+      drawOutOfBound: false,
+      layoutAnimation: true,
+      textStyle: {
+        fontFamily: 'Inter, Noto Serif SC, sans-serif',
+        fontWeight: 'bold',
+        color: function() {
+          return colors[Math.floor(Math.random() * colors.length)];
+        },
+      },
+      emphasis: {
+        focus: 'self',
+        textStyle: { shadowBlur: 10, shadowColor: '#a78bfa' },
+      },
+      data: wcData,
+    }],
+  });
+  window.addEventListener('resize', () => chart.resize());
+})();
+
+// ── 过滤文章 ──────────────────────────────────────────────────────────────
+function filterArticles(account, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  document.querySelectorAll('.article-card').forEach(card => {
+    if (account === 'all' || card.dataset.account === account) {
+      card.style.display = '';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+
+// ── 错开动画 ──────────────────────────────────────────────────────────────
+document.querySelectorAll('.article-card').forEach((card, i) => {
+  card.style.animationDelay = (i * 0.04) + 's';
+});
+</script>
+</body>
+</html>
