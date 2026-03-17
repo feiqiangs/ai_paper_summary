@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>vLLM vs SGLang 代码对比分析 2026-03-17</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+         background: #0f1117; color: #e2e8f0; line-height: 1.6; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+  h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 4px;
+        background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent; }
+  .subtitle { color: #94a3b8; margin-bottom: 24px; font-size: 0.9rem; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+  .card { background: #1e2433; border-radius: 12px; padding: 20px;
+           border: 1px solid #2d3748; }
+  .card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 16px;
+                 display: flex; align-items: center; gap: 8px; }
+  .vllm-color { color: #60a5fa; }
+  .sglang-color { color: #34d399; }
+  .section-title { font-size: 1.3rem; font-weight: 700; margin: 28px 0 16px;
+                    padding-bottom: 8px; border-bottom: 2px solid #2d3748; }
+  .insight-card { background: #252d3d; border-radius: 8px; padding: 16px;
+                   margin-bottom: 12px; border-left: 3px solid #667eea; }
+  .insight-header { display: flex; justify-content: space-between; align-items: flex-start;
+                     margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
+  .insight-title { font-weight: 600; font-size: 0.95rem; }
+  .insight-meta { font-size: 0.8rem; color: #94a3b8; display: flex; gap: 6px; align-items: center; }
+  .insight-desc { font-size: 0.875rem; color: #cbd5e1; }
+  .badge { padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+  .badge-easy   { background: #065f46; color: #6ee7b7; }
+  .badge-medium { background: #92400e; color: #fcd34d; }
+  .badge-hard   { background: #7f1d1d; color: #fca5a5; }
+  .empty { color: #64748b; font-style: italic; padding: 12px 0; }
+  .stats-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .stats-table th, .stats-table td { padding: 6px 10px; text-align: left;
+                                       border-bottom: 1px solid #2d3748; }
+  .stats-table th { color: #94a3b8; font-weight: 500; }
+  .summary-nums { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+                   margin-bottom: 24px; }
+  @media (max-width: 480px) { .summary-nums { grid-template-columns: repeat(2, 1fr); } }
+  .num-card { background: #1e2433; border-radius: 8px; padding: 16px; text-align: center;
+               border: 1px solid #2d3748; }
+  .num-val { font-size: 2rem; font-weight: 700; color: #667eea; }
+  .num-label { font-size: 0.8rem; color: #94a3b8; margin-top: 4px; }
+  .footer { text-align: center; color: #475569; font-size: 0.8rem; margin-top: 40px;
+             padding-top: 20px; border-top: 1px solid #2d3748; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>⚔️ vLLM vs SGLang 代码对比分析</h1>
+  <p class="subtitle">生成时间：2026-03-17 11:31 | 分析周期：2026-03-17</p>
+
+  <div class="summary-nums">
+    <div class="num-card">
+      <div class="num-val">62</div>
+      <div class="num-label">vLLM 新增 Commits</div>
+    </div>
+    <div class="num-card">
+      <div class="num-val">35</div>
+      <div class="num-label">SGLang 新增 Commits</div>
+    </div>
+    <div class="num-card">
+      <div class="num-val">0</div>
+      <div class="num-label">🔴 高价值借鉴点</div>
+    </div>
+    <div class="num-card">
+      <div class="num-val">0</div>
+      <div class="num-label">总计借鉴点</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title"><span class="vllm-color">🔵 vLLM</span> 模块活跃度</div>
+      <table class='stats-table'><tr><th>模块</th><th>Commits</th></tr><tr><td>其他</td><td>17</td></tr><tr><td>推理引擎核心</td><td>17</td></tr><tr><td>注意力机制</td><td>11</td></tr><tr><td>MoE专家路由</td><td>9</td></tr><tr><td>服务接口</td><td>8</td></tr><tr><td>CUDA内核优化</td><td>7</td></tr><tr><td>量化与压缩</td><td>5</td></tr><tr><td>多模态</td><td>4</td></tr><tr><td>KV Cache管理</td><td>2</td></tr><tr><td>分布式通信</td><td>2</td></tr><tr><td>LoRA/适配器</td><td>1</td></tr></table>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="sglang-color">🟢 SGLang</span> 模块活跃度</div>
+      <table class='stats-table'><tr><th>模块</th><th>Commits</th></tr><tr><td>其他</td><td>12</td></tr><tr><td>调度器</td><td>9</td></tr><tr><td>多模态</td><td>6</td></tr><tr><td>推理引擎核心</td><td>5</td></tr><tr><td>CUDA内核优化</td><td>5</td></tr><tr><td>服务接口</td><td>3</td></tr><tr><td>KV Cache管理</td><td>3</td></tr><tr><td>注意力机制</td><td>2</td></tr><tr><td>量化与压缩</td><td>2</td></tr><tr><td>LoRA/适配器</td><td>1</td></tr><tr><td>MoE专家路由</td><td>1</td></tr><tr><td>分布式通信</td><td>1</td></tr><tr><td>投机解码</td><td>1</td></tr></table>
+    </div>
+  </div>
+
+  <h2 class="section-title">🔵→🟢 vLLM 可借鉴给 SGLang 的优化</h2>
+  <h3 style="color:#f59e0b;margin-bottom:12px;">🔴 高价值</h3>
+  <p class="empty">暂无明显可借鉴的优化点</p>
+  <h3 style="color:#94a3b8;margin:16px 0 12px;">其他优化点</h3>
+  <p class="empty">暂无明显可借鉴的优化点</p>
+
+  <h2 class="section-title">🟢→🔵 SGLang 可借鉴给 vLLM 的优化</h2>
+  <h3 style="color:#f59e0b;margin-bottom:12px;">🔴 高价值</h3>
+  <p class="empty">暂无明显可借鉴的优化点</p>
+  <h3 style="color:#94a3b8;margin:16px 0 12px;">其他优化点</h3>
+  <p class="empty">暂无明显可借鉴的优化点</p>
+
+  <div class="footer">AI Infra 监控系统 · 自动生成</div>
+</div>
+</body>
+</html>
