@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📱 微信公众号监控日报 - 2026年03月18日</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts-wordcloud@2.1.0/dist/echarts-wordcloud.min.js"></script>
+<style>
+  :root {
+    --bg: #0f0f1a;
+    --surface: #1a1a2e;
+    --surface2: #16213e;
+    --border: rgba(255,255,255,0.08);
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --accent: #7c3aed;
+    --radius: 12px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Inter','Noto Serif SC',sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 20% 50%, rgba(124,58,237,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(6,182,212,0.06) 0%, transparent 50%);
+  }
+  /* ── Header ── */
+  .header {
+    padding: 48px 24px 32px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(124,58,237,0.05) 0%, transparent 100%);
+  }
+  .header-badge {
+    display: inline-block;
+    padding: 4px 14px;
+    background: rgba(124,58,237,0.2);
+    border: 1px solid rgba(124,58,237,0.4);
+    border-radius: 20px;
+    font-size: 12px;
+    color: #a78bfa;
+    letter-spacing: 0.05em;
+    margin-bottom: 16px;
+    font-family: 'JetBrains Mono',monospace;
+  }
+  .header h1 {
+    font-family: 'Noto Serif SC',serif;
+    font-size: clamp(1.8rem,4vw,2.8rem);
+    font-weight: 700;
+    background: linear-gradient(135deg,#e2e8f0 0%,#a78bfa 50%,#67e8f9 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+  .header-meta { color:var(--text-muted); font-size:14px; margin-top:8px; }
+  /* ── Container ── */
+  .container { max-width:960px; margin:0 auto; padding:32px 24px; }
+  /* ── 总览卡片 ── */
+  .total-card {
+    background: linear-gradient(135deg,rgba(124,58,237,0.15) 0%,rgba(6,182,212,0.1) 100%);
+    border: 1px solid rgba(124,58,237,0.3);
+    border-radius: var(--radius);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .total-card .big-num {
+    font-size: 3rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono',monospace;
+    background: linear-gradient(135deg,#a78bfa,#67e8f9);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .total-card .total-desc { color:var(--text-muted); font-size:14px; line-height:1.6; }
+  /* ── 统计卡片 ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(160px,1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.2s,box-shadow 0.2s;
+  }
+  .stat-card:hover { transform:translateY(-4px); box-shadow:0 12px 32px rgba(0,0,0,0.3); }
+  .stat-num { font-size:2.2rem; font-weight:700; font-family:'JetBrains Mono',monospace; line-height:1; margin-bottom:6px; }
+  .stat-label { font-size:13px; color:var(--text-muted); }
+  /* ── 词云区域 ── */
+  .wordcloud-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 40px;
+  }
+  .section-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::before {
+    content: '';
+    display: inline-block;
+    width: 3px;
+    height: 16px;
+    background: linear-gradient(#a78bfa,#67e8f9);
+    border-radius: 2px;
+  }
+  #wordcloud { width:100%; height:360px; }
+  /* ── 过滤栏 ── */
+  .filter-bar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:28px; }
+  .filter-btn {
+    padding: 7px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .filter-btn:hover,.filter-btn.active {
+    background: rgba(124,58,237,0.2);
+    border-color: rgba(124,58,237,0.5);
+    color: #a78bfa;
+  }
+  /* ── 文章卡片 ── */
+  .article-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 16px;
+    transition: transform 0.2s,box-shadow 0.2s,border-color 0.2s;
+  }
+  .article-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.3);
+    border-color: rgba(124,58,237,0.3);
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .account-badge {
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+  }
+  .source-badge {
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-size: 11px;
+    background: rgba(255,255,255,0.08);
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono',monospace;
+  }
+  .ft-badge {
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-family: 'JetBrains Mono',monospace;
+  }
+  .ft-full { background:rgba(72,187,120,0.15); color:#9ae6b4; border:1px solid rgba(72,187,120,0.3); }
+  .ft-rss  { background:rgba(160,174,192,0.1);  color:#94a3b8; border:1px solid rgba(160,174,192,0.2); }
+  .pub-date { font-size:12px; color:var(--text-muted); margin-left:auto; font-family:'JetBrains Mono',monospace; }
+  .article-title { font-family:'Noto Serif SC',serif; font-size:1.1rem; font-weight:600; margin-bottom:12px; line-height:1.5; }
+  .article-title a { color:var(--text); text-decoration:none; transition:color 0.2s; }
+  .article-title a:hover { color:#a78bfa; }
+  .keywords { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+  .kw-tag {
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .kw-tag:hover { opacity:0.75; }
+  .article-summary { font-size:14px; color:var(--text-muted); line-height:1.8; }
+  /* ── 动画 ── */
+  @keyframes fadeInUp {
+    from { opacity:0; transform:translateY(20px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  .fade-in { animation:fadeInUp 0.4s ease-out forwards; opacity:0; }
+  /* ── 空状态 ── */
+  .empty-state { text-align:center; padding:60px 24px; color:var(--text-muted); }
+  /* ── 页脚 ── */
+  footer {
+    text-align: center;
+    padding: 32px 24px;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 13px;
+    font-family: 'JetBrains Mono',monospace;
+  }
+  footer a { color:#a78bfa; text-decoration:none; }
+  @media (max-width:640px) {
+    .pub-date { display:none; }
+    .stats-row { grid-template-columns:repeat(2,1fr); }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-badge">WECHAT MONITOR · 2026年03月18日</div>
+  <h1>📱 微信公众号技术日报</h1>
+  <p class="header-meta">生成时间：2026年03月18日 10:15 &nbsp;·&nbsp; 数据来源：Wechat2RSS + 搜狗微信 &nbsp;·&nbsp; 摘要：TextRank全文提取</p>
+</header>
+
+<div class="container">
+
+  <!-- 总览 -->
+  <div class="total-card">
+    <div class="big-num">33</div>
+    <div class="total-desc">
+      过去 <strong style="color:#a78bfa">7 天</strong> 内共收录文章<br>
+      覆盖 <strong style="color:#67e8f9">4</strong> 个公众号
+    </div>
+  </div>
+
+  <!-- 各账号统计 -->
+  <div class="stats-row">
+    
+        <div class="stat-card" style="border-left:4px solid #667eea">
+            <div class="stat-num" style="color:#667eea">20</div>
+            <div class="stat-label">机器之心</div>
+        </div>
+        <div class="stat-card" style="border-left:4px solid #f6ad55">
+            <div class="stat-num" style="color:#f6ad55">4</div>
+            <div class="stat-label">阿里云开发者</div>
+        </div>
+        <div class="stat-card" style="border-left:4px solid #48bb78">
+            <div class="stat-num" style="color:#48bb78">3</div>
+            <div class="stat-label">腾讯技术工程</div>
+        </div>
+        <div class="stat-card" style="border-left:4px solid #ed64a6">
+            <div class="stat-num" style="color:#ed64a6">6</div>
+            <div class="stat-label">vLLM</div>
+        </div>
+  </div>
+
+  <!-- 词云 -->
+  <div class="wordcloud-section">
+    <div class="section-title">🔑 本期热词词云</div>
+    <div id="wordcloud"></div>
+  </div>
+
+  <!-- 过滤按钮 -->
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="filterArticles('all',this)">全部 (33)</button>
+    <button class="filter-btn" onclick="filterArticles('机器之心',this)">机器之心 (20)</button><button class="filter-btn" onclick="filterArticles('阿里云开发者',this)">阿里云开发者 (4)</button><button class="filter-btn" onclick="filterArticles('腾讯技术工程',this)">腾讯技术工程 (3)</button><button class="filter-btn" onclick="filterArticles('vLLM',this)">vLLM (6)</button>
+  </div>
+
+  <!-- 文章列表 -->
+  <div id="articles-container">
+    <div class="empty-state"><p>📭 本周暂无新文章</p></div>
+  </div>
+
+</div>
+
+<footer>
+  <p>📱 微信公众号监控日报 · <a href="https://wechat2rss.xlab.app">Wechat2RSS</a> · TextRank摘要 · 2026年03月18日 10:15</p>
+</footer>
+
+<script>
+// ── 词云 ──────────────────────────────────────────────────────────────────
+(function() {
+  const chart = echarts.init(document.getElementById('wordcloud'));
+  const wcData = [{"name": "大模型", "value": 21}, {"name": "LLM", "value": 21}, {"name": "Agent", "value": 20}, {"name": "vLLM", "value": 18}, {"name": "多模态", "value": 8}, {"name": "安全", "value": 5}, {"name": "开源", "value": 4}, {"name": "Qwen", "value": 4}, {"name": "Triton", "value": 4}, {"name": "DeepSeek", "value": 3}, {"name": "OpenClaw", "value": 3}, {"name": "Gemini", "value": 3}, {"name": "Speculative Decoding", "value": 3}, {"name": "对齐", "value": 2}, {"name": "记忆", "value": 2}, {"name": "强化学习", "value": 2}, {"name": "Skill", "value": 2}, {"name": "Claude", "value": 2}, {"name": "GPU", "value": 2}, {"name": "OpenMAIC", "value": 1}, {"name": "清华团队", "value": 1}, {"name": "了一只", "value": 1}, {"name": "教学龙虾", "value": 1}, {"name": "Llama", "value": 1}, {"name": "GPT", "value": 1}, {"name": "HyperOffload", "value": 1}, {"name": "破局", "value": 1}, {"name": "定义超节", "value": 1}, {"name": "点存储管", "value": 1}, {"name": "理新范式", "value": 1}, {"name": "MindSpore", "value": 1}, {"name": "arXiv", "value": 1}, {"name": "CEO", "value": 1}, {"name": "奈尔大学", "value": 1}, {"name": "Ginsparg", "value": 1}, {"name": "变天", "value": 1}, {"name": "将脱离康", "value": 1}, {"name": "LoGeR", "value": 1}, {"name": "TTT", "value": 1}, {"name": "万帧", "value": 1}, {"name": "MME-Emotion", "value": 1}, {"name": "情绪吗", "value": 1}, {"name": "Meta", "value": 1}, {"name": "Avocado", "value": 1}, {"name": "还套壳", "value": 1}, {"name": "千亿自研", "value": 1}, {"name": "预训练", "value": 1}, {"name": "NCA", "value": 1}, {"name": "训练", "value": 1}, {"name": "Transformer", "value": 1}, {"name": "人类语言", "value": 1}, {"name": "DRIFT", "value": 1}, {"name": "长上下文", "value": 1}, {"name": "推理模型", "value": 1}, {"name": "爱诗科技", "value": 1}, {"name": "PixVerse", "value": 1}, {"name": "视频生成", "value": 1}, {"name": "实时世界", "value": 1}, {"name": "谷歌", "value": 1}, {"name": "秒出科普", "value": 1}, {"name": "只能怪自", "value": 1}, {"name": "己懒", "value": 1}, {"name": "上新", "value": 1}, {"name": "NotebookLM", "value": 1}, {"name": "GTR", "value": 1}, {"name": "SFT", "value": 1}, {"name": "VLM", "value": 1}, {"name": "VAST", "value": 1}, {"name": "Tripo", "value": 1}, {"name": "首席科学", "value": 1}, {"name": "家曹炎培", "value": 1}, {"name": "Mesh", "value": 1}, {"name": "秒终结", "value": 1}, {"name": "JiuwenClaw", "value": 1}, {"name": "龙虾", "value": 1}, {"name": "com", "value": 1}, {"name": "养龙虾", "value": 1}, {"name": "https", "value": 1}, {"name": "memory", "value": 1}, {"name": "Memory", "value": 1}];
+  const colors = [
+    '#a78bfa','#67e8f9','#f6ad55','#48bb78','#ed64a6',
+    '#fc8181','#63b3ed','#b794f4','#76e4f7','#fbd38d',
+  ];
+  chart.setOption({
+    backgroundColor: 'transparent',
+    series: [{
+      type: 'wordCloud',
+      shape: 'circle',
+      left: 'center',
+      top: 'center',
+      width: '95%',
+      height: '95%',
+      right: null,
+      bottom: null,
+      sizeRange: [12, 60],
+      rotationRange: [-45, 45],
+      rotationStep: 15,
+      gridSize: 8,
+      drawOutOfBound: false,
+      layoutAnimation: true,
+      textStyle: {
+        fontFamily: 'Inter, Noto Serif SC, sans-serif',
+        fontWeight: 'bold',
+        color: function() {
+          return colors[Math.floor(Math.random() * colors.length)];
+        },
+      },
+      emphasis: {
+        focus: 'self',
+        textStyle: { shadowBlur: 10, shadowColor: '#a78bfa' },
+      },
+      data: wcData,
+    }],
+  });
+  window.addEventListener('resize', () => chart.resize());
+})();
+
+// ── 过滤文章 ──────────────────────────────────────────────────────────────
+function filterArticles(account, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  document.querySelectorAll('.article-card').forEach(card => {
+    if (account === 'all' || card.dataset.account === account) {
+      card.style.display = '';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+
+// ── 错开动画 ──────────────────────────────────────────────────────────────
+document.querySelectorAll('.article-card').forEach((card, i) => {
+  card.style.animationDelay = (i * 0.04) + 's';
+});
+</script>
+</body>
+</html>
