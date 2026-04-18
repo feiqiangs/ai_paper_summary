@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>vLLM vs SGLang 代码对比分析 2026-04-18</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+         background: #0f1117; color: #e2e8f0; line-height: 1.6; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+  h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 4px;
+        background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent; }
+  .subtitle { color: #94a3b8; margin-bottom: 24px; font-size: 0.9rem; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+  .card { background: #1e2433; border-radius: 12px; padding: 20px;
+           border: 1px solid #2d3748; }
+  .card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 16px;
+                 display: flex; align-items: center; gap: 8px; }
+  .vllm-color { color: #60a5fa; }
+  .sglang-color { color: #34d399; }
+  .section-title { font-size: 1.3rem; font-weight: 700; margin: 28px 0 16px;
+                    padding-bottom: 8px; border-bottom: 2px solid #2d3748; }
+  .insight-card { background: #252d3d; border-radius: 8px; padding: 16px;
+                   margin-bottom: 12px; border-left: 3px solid #667eea; }
+  .insight-header { display: flex; justify-content: space-between; align-items: flex-start;
+                     margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
+  .insight-title { font-weight: 600; font-size: 0.95rem; }
+  .insight-meta { font-size: 0.8rem; color: #94a3b8; display: flex; gap: 6px; align-items: center; }
+  .insight-desc { font-size: 0.875rem; color: #cbd5e1; }
+  .badge { padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+  .badge-easy   { background: #065f46; color: #6ee7b7; }
+  .badge-medium { background: #92400e; color: #fcd34d; }
+  .badge-hard   { background: #7f1d1d; color: #fca5a5; }
+  .empty { color: #64748b; font-style: italic; padding: 12px 0; }
+  .stats-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .stats-table th, .stats-table td { padding: 6px 10px; text-align: left;
+                                       border-bottom: 1px solid #2d3748; }
+  .stats-table th { color: #94a3b8; font-weight: 500; }
+  .summary-nums { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+                   margin-bottom: 24px; }
+  @media (max-width: 480px) { .summary-nums { grid-template-columns: repeat(2, 1fr); } }
+  .num-card { background: #1e2433; border-radius: 8px; padding: 16px; text-align: center;
+               border: 1px solid #2d3748; }
+  .num-val { font-size: 2rem; font-weight: 700; color: #667eea; }
+  .num-label { font-size: 0.8rem; color: #94a3b8; margin-top: 4px; }
+  .footer { text-align: center; color: #475569; font-size: 0.8rem; margin-top: 40px;
+             padding-top: 20px; border-top: 1px solid #2d3748; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>⚔️ vLLM vs SGLang 代码对比分析</h1>
+  <p class="subtitle">生成时间：2026-04-18 11:56 | 分析周期：2026-04-18</p>
+
+  <div class="summary-nums">
+    <div class="num-card">
+      <div class="num-val">32</div>
+      <div class="num-label">vLLM 新增 Commits</div>
+    </div>
+    <div class="num-card">
+      <div class="num-val">43</div>
+      <div class="num-label">SGLang 新增 Commits</div>
+    </div>
+    <div class="num-card">
+      <div class="num-val">9</div>
+      <div class="num-label">🔴 高价值借鉴点</div>
+    </div>
+    <div class="num-card">
+      <div class="num-val">19</div>
+      <div class="num-label">总计借鉴点</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title"><span class="vllm-color">🔵 vLLM</span> 模块活跃度</div>
+      <table class='stats-table'><tr><th>模块</th><th>Commits</th></tr><tr><td>其他</td><td>12</td></tr><tr><td>推理引擎核心</td><td>6</td></tr><tr><td>CUDA内核优化</td><td>6</td></tr><tr><td>服务接口</td><td>4</td></tr><tr><td>MoE专家路由</td><td>4</td></tr><tr><td>注意力机制</td><td>4</td></tr><tr><td>量化与压缩</td><td>3</td></tr><tr><td>多模态</td><td>1</td></tr><tr><td>分布式通信</td><td>1</td></tr><tr><td>KV Cache管理</td><td>1</td></tr></table>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="sglang-color">🟢 SGLang</span> 模块活跃度</div>
+      <table class='stats-table'><tr><th>模块</th><th>Commits</th></tr><tr><td>其他</td><td>14</td></tr><tr><td>多模态</td><td>9</td></tr><tr><td>CUDA内核优化</td><td>7</td></tr><tr><td>量化与压缩</td><td>6</td></tr><tr><td>推理引擎核心</td><td>6</td></tr><tr><td>KV Cache管理</td><td>4</td></tr><tr><td>注意力机制</td><td>4</td></tr><tr><td>MoE专家路由</td><td>3</td></tr><tr><td>服务接口</td><td>3</td></tr><tr><td>LoRA/适配器</td><td>2</td></tr><tr><td>调度器</td><td>2</td></tr></table>
+    </div>
+  </div>
+
+  <h2 class="section-title">🔵→🟢 vLLM 可借鉴给 SGLang 的优化</h2>
+  <h3 style="color:#f59e0b;margin-bottom:12px;">🔴 高价值</h3>
+  
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 MXFP4 W4A4量化MoE内核</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | MoE专家路由</span>
+                </div>
+                <div class="insight-desc">vLLM新增了针对SM100架构的MXFP4 W4A4 CUTLASS MoE内核，支持4位权重和4位激活的混合精度计算。这种量化技术能显著减少内存占用和带宽需求，特别适合大规模MoE模型部署。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 KV缓存Offload CPU块数量优化</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 其他</span>
+                </div>
+                <div class="insight-desc">vLLM修复了UniformTypeKVCacheSpecs中的CPU块数量计算问题，优化了KV缓存的内存管理策略，提高了内存使用效率。</div>
+            </div>
+  <h3 style="color:#94a3b8;margin:16px 0 12px;">其他优化点</h3>
+  
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 自定义工具解析器支持</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | MoE专家路由</span>
+                </div>
+                <div class="insight-desc">vLLM在tool_choice为required时支持自定义工具解析器，增强了MoE模型在工具调用场景下的灵活性。这对于构建需要复杂工具交互的MoE应用具有重要意义。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 测试优化与清理</span>
+                    <span class="insight-meta"><span class="badge badge-easy">Easy</span> | MoE专家路由</span>
+                </div>
+                <div class="insight-desc">vLLM移除了过时的MoE测试用例并优化了测试执行速度，提高了开发效率和代码质量。这种持续的基础设施优化对长期维护很重要。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 MoE LoRA量化支持优化</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | LoRA/适配器</span>
+                </div>
+                <div class="insight-desc">vLLM在MXFP4量化格式中增加了对MoE LoRA的专门支持，通过优化量化参数配置来提升MoE模型在量化模式下的LoRA适配效率。SGLang目前主要关注FP16/BF16精度下的LoRA优化。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟢 ROCm平台MoE LoRA内核优化</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | LoRA/适配器</span>
+                </div>
+                <div class="insight-desc">vLLM针对AMD ROCm平台进行了专门的MoE LoRA内核优化，通过平台特定的内存访问模式和计算优化来提升在AMD GPU上的性能表现。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 编译优化模式匹配器单元测试框架</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 其他</span>
+                </div>
+                <div class="insight-desc">vLLM为VllmFusionPatternMatcherPass添加了完整的单元测试，建立了编译优化的测试基础设施，确保编译优化的正确性和稳定性。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 可观测性示例体系重构</span>
+                    <span class="insight-meta"><span class="badge badge-easy">Easy</span> | 其他</span>
+                </div>
+                <div class="insight-desc">vLLM重新整理了可观测性示例，包括Grafana仪表板和性能统计，提供了完整的监控和诊断参考实现。</div>
+            </div>
+
+  <h2 class="section-title">🟢→🔵 SGLang 可借鉴给 vLLM 的优化</h2>
+  <h3 style="color:#f59e0b;margin-bottom:12px;">🔴 高价值</h3>
+  
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 Triton MoE运行器路径去重</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | MoE专家路由</span>
+                </div>
+                <div class="insight-desc">SGLang将Triton MoE运行器路径重构为共享助手，减少了317个文件的代码重复。这种架构优化提高了代码可维护性和一致性。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 多租户LoRA服务架构</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | LoRA/适配器</span>
+                </div>
+                <div class="insight-desc">SGLang实现了完整的Punica风格多租户LoRA服务，支持数千个并发LoRA适配器的动态加载、内存管理和调度，具备先进的内存池管理和CUDA图优化能力。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 MoE LoRA深度融合架构</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | LoRA/适配器</span>
+                </div>
+                <div class="insight-desc">SGLang将LoRA深度集成到MoE计算流程中，在gate_up投影后和down投影前两个关键点注入LoRA增量，实现计算融合而非后处理叠加，显著提升效率。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 动态LoRA批处理优化</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | LoRA/适配器</span>
+                </div>
+                <div class="insight-desc">SGLang实现了智能的LoRA批处理机制，支持动态适配器加载、权重分片和CUDA图重用，能够根据请求模式自动优化LoRA内存布局和计算调度。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 深度集成CUDA图优化</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | LoRA/适配器</span>
+                </div>
+                <div class="insight-desc">SGLang在LoRA计算中深度集成CUDA图技术，支持LoRA-aware的图捕获和重放，显著减少小批量推理时的内核启动开销。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 网络文件系统检查点协调预取</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | 其他</span>
+                </div>
+                <div class="insight-desc">SGLang实现了网络文件系统的协调检查点预取机制，优化了分布式环境下的模型加载性能，减少了IO等待时间。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 Gemma权重预计算优化</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 其他</span>
+                </div>
+                <div class="insight-desc">SGLang通过预计算gemma权重避免了每次前向传播中的冗余加法操作，减少了计算开销，提升了推理性能。</div>
+            </div>
+  <h3 style="color:#94a3b8;margin:16px 0 12px;">其他优化点</h3>
+  
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 共享专家融合兼容性修复</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | MoE专家路由</span>
+                </div>
+                <div class="insight-desc">SGLang修复了Qwen3.5 MXFP4在启用共享专家融合后的兼容性问题，增强了MoE模型在特定架构下的稳定性。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 MoE前输入截断优化</span>
+                    <span class="insight-meta"><span class="badge badge-easy">Easy</span> | MoE专家路由</span>
+                </div>
+                <div class="insight-desc">SGLang新增SGLANG_MORI_MOE_MAX_INPUT_TOKENS环境变量，支持在MoE路由前截断长输入，优化了内存使用和计算效率。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 虚拟专家LoRA支持</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | LoRA/适配器</span>
+                </div>
+                <div class="insight-desc">SGLang支持虚拟专家概念的LoRA适配，通过lora_use_virtual_experts配置实现专家共享的LoRA权重管理，优化大规模MoE模型的LoRA内存占用。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 统一Radix树HiCache接口扩展</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 其他</span>
+                </div>
+                <div class="insight-desc">SGLang为TreeComponent添加了HiCache hook接口，增强了缓存系统的扩展性和定制能力，支持更灵活的缓存策略。</div>
+            </div>
+
+  <div class="footer">AI Infra 监控系统 · 自动生成</div>
+</div>
+</body>
+</html>
