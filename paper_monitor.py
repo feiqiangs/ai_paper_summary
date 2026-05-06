@@ -9,14 +9,102 @@ import sys
 import os
 import re
 import time
+import json
+import sqlite3
 import requests
 from datetime import datetime
+from pathlib import Path
 
 # 将 arxiv_search 所在目录加入 path
 ARXIV_SKILL_DIR = "/data/workspace/.agent/skills/arxiv-paper-search/scripts"
 sys.path.insert(0, ARXIV_SKILL_DIR)
 
 from arxiv_search import ArxivSearcher
+
+# 顶会论文追踪模块（可选，失败不影响主流程）
+try:
+    _VENUE_MONITOR_DIR = str(Path(__file__).parent)
+    if _VENUE_MONITOR_DIR not in sys.path:
+        sys.path.insert(0, _VENUE_MONITOR_DIR)
+    from venue_monitor import build_venue_section_html, VENUE_CSS
+    _VENUE_MONITOR_AVAILABLE = True
+except Exception as _e:
+    _VENUE_MONITOR_AVAILABLE = False
+    VENUE_CSS = ""
+    print(f"[paper_monitor] venue_monitor 未加载: {_e}", file=sys.stderr)
+
+# ============================================================
+# SQLite 缓存层
+# ============================================================
+
+# 主缓存数据库（论文摘要、关键词、翻译）
+PAPER_DB_PATH = Path("/data/workspace/paper_monitor_cache.db")
+
+# 动态词典数据库（复用 github_monitor 的 domain_phrases 表）
+DOMAIN_DB_PATH = Path("/data/workspace/github_monitor_cache.db")
+
+
+def _init_paper_db() -> sqlite3.Connection:
+    """初始化论文监控 SQLite 缓存数据库"""
+    conn = sqlite3.connect(str(PAPER_DB_PATH))
+    conn.row_factory = sqlite3.Row
+    conn.executescript("""
+        -- 论文内容缓存：HTML 提取的 abstract 和 keywords
+        CREATE TABLE IF NOT EXISTS paper_content_cache (
+            arxiv_id      TEXT PRIMARY KEY,
+            abstract      TEXT NOT NULL DEFAULT '',
+            keywords_json TEXT NOT NULL DEFAULT '[]',
+            cached_at     TEXT NOT NULL
+        );
+
+        -- 翻译缓存：英文原文 -> 中文翻译
+        CREATE TABLE IF NOT EXISTS translation_cache (
+            src_hash      TEXT PRIMARY KEY,   -- SHA1(原文)
+            src_text      TEXT NOT NULL,
+            translated    TEXT NOT NULL,
+            engine        TEXT NOT NULL DEFAULT 'google',
+            cached_at     TEXT NOT NULL
+        );
+
+        -- 论文关键词缓存（用于词云，经动态词典匹配后的结果）
+        CREATE TABLE IF NOT EXISTS paper_keyword_cache (
+            arxiv_id      TEXT PRIMARY KEY,
+            keywords_json TEXT NOT NULL DEFAULT '[]',
+            cached_at     TEXT NOT NULL
+        );
+    """)
+    conn.commit()
+    return conn
+
+
+# 全局数据库连接（懒加载）
+_paper_db: sqlite3.Connection = None
+
+
+def get_paper_db() -> sqlite3.Connection:
+    global _paper_db
+    if _paper_db is None:
+        _paper_db = _init_paper_db()
+    return _paper_db
+
+
+def _load_dynamic_domain_phrases() -> list:
+    """
+    从 github_monitor_cache.db 的 domain_phrases 表加载动态搜集的领域短语。
+    返回 [(phrase_lower, display_name)] 列表，按短语长度降序。
+    """
+    if not DOMAIN_DB_PATH.exists():
+        return []
+    try:
+        conn = sqlite3.connect(str(DOMAIN_DB_PATH))
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute(
+            "SELECT phrase_lower, display_name FROM domain_phrases WHERE freq >= 2 ORDER BY LENGTH(phrase_lower) DESC"
+        ).fetchall()
+        conn.close()
+        return [(r["phrase_lower"], r["display_name"]) for r in rows]
+    except Exception:
+        return []
 
 # 监控主题配置
 TOPICS = [
@@ -31,6 +119,12 @@ TOPICS = [
         "keywords": ["vLLM", "SGLang", "TensorRT-LLM", "inference framework", "storage bandwidth LLM", "disaggregated LLM"],
         "days": 7,
         "num": 8,
+    },
+    {
+        "name": "🔗 GPU互联 / 系统网络 (Interconnect & Networking)",
+        "keywords": ["NVLink", "RDMA", "InfiniBand", "RoCE", "collective communication", "GPU cluster", "GPU interconnect", "NCCL", "all-reduce", "network topology LLM"],
+        "days": 7,
+        "num": 6,
     },
     {
         "name": "🔵 DeepSeek 相关",
@@ -121,43 +215,131 @@ def extract_affiliation(summary: str, authors: list) -> str:
     return "未知"
 
 
-# 翻译缓存，避免重复请求
-_translate_cache: dict = {}
+# ============================================================
+# 翻译模块：AI（knot-cli）高质量翻译 + SQLite 永久缓存
+# 降级策略：knot-cli 失败 → Google Translate → 英文截断
+# ============================================================
+
+def _text_hash(text: str) -> str:
+    """计算文本的 SHA1 哈希，用作翻译缓存 key"""
+    import hashlib
+    return hashlib.sha1(text.encode("utf-8")).hexdigest()
+
 
 def translate_to_chinese(text: str) -> str:
     """
-    将英文文本翻译成中文，使用 MyMemory 免费翻译接口。
-    带缓存和异常兜底（失败时返回原文截断版本）。
+    将英文文本翻译成中文。
+    优先查 SQLite 翻译缓存，命中直接返回；
+    未命中则依次尝试：AI翻译(knot-cli) → Google Translate，结果写入 SQLite 永久缓存。
     """
-    if not text:
+    if not text or not text.strip():
         return text
 
-    # 命中缓存直接返回
-    if text in _translate_cache:
-        return _translate_cache[text]
+    text = text.strip()
+    src_hash = _text_hash(text)
+    db = get_paper_db()
 
+    # 1. 查 SQLite 缓存
+    row = db.execute(
+        "SELECT translated FROM translation_cache WHERE src_hash=?", (src_hash,)
+    ).fetchone()
+    if row:
+        return row["translated"]
+
+    # 2. 优先使用 AI 翻译（knot-cli），降级到 Google Translate
+    translated, engine = _ai_translate(text)
+
+    # 3. 写入 SQLite 缓存
+    now = datetime.utcnow().isoformat()
     try:
-        for attempt in range(2):
-            resp = requests.get(
-                "https://api.mymemory.translated.net/get",
-                params={"q": text, "langpair": "en|zh"},
-                timeout=10,
-            )
-            result = resp.json()
-            translated = result.get("responseData", {}).get("translatedText", "")
-            if translated and translated != text:
-                _translate_cache[text] = translated
-                # 避免请求过快被限速
-                time.sleep(0.5)
-                return translated
-            # 第一次失败，等待后重试
-            time.sleep(1.5)
+        db.execute(
+            "INSERT OR REPLACE INTO translation_cache (src_hash, src_text, translated, engine, cached_at) VALUES (?,?,?,?,?)",
+            (src_hash, text[:2000], translated, engine, now)
+        )
+        db.commit()
     except Exception:
         pass
 
-    # 翻译失败时返回原文
-    _translate_cache[text] = text
-    return text
+    return translated
+
+
+def _ai_translate(text: str) -> tuple:
+    """
+    使用 knot-cli AI 翻译英文到中文。
+    返回 (translated_text, engine_name)。
+    失败时降级到 Google Translate。
+    """
+    import subprocess, json, re
+
+    # 构造翻译 prompt，要求只输出中文翻译结果，不要解释
+    prompt = (
+        f"请将以下学术论文摘要翻译成中文，要求：\n"
+        f"1. 准确传达技术含义\n"
+        f"2. 保留专业术语（如 KV Cache、Transformer、LLM 等）\n"
+        f"3. 只输出中文翻译，不要任何解释或前缀\n\n"
+        f"原文：{text[:600]}"
+    )
+
+    try:
+        result = subprocess.run(
+            ["/root/background_agent_cli/bin/knot-cli", "chat",
+             "-p", prompt, "-o", "json"],
+            capture_output=True, text=True, timeout=45
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            # 解析第一行 JSON（后面可能有 requestID 行）
+            first_line = result.stdout.strip().split("\n")[0]
+            data = json.loads(first_line)
+            response = data.get("response", "")
+            # 清理 AI 输出中的 [任务规划完成] 标记和引号
+            response = re.sub(r'\[.*?\]', '', response).strip()
+            response = response.strip('"').strip("'").strip()
+            if response and len(response) > 3:
+                return response, "knot-ai"
+    except Exception as e:
+        print(f"  ⚠️ AI翻译失败: {e}，降级到 Google Translate", file=sys.stderr)
+
+    # 降级：Google Translate
+    translated = _google_translate(text)
+    return translated, "google"
+
+
+def _google_translate(text: str, retries: int = 2) -> str:
+    """
+    调用 Google Translate 非官方接口（无需 API Key）。
+    失败时返回截断的英文原文。
+    """
+    for attempt in range(retries):
+        try:
+            resp = requests.get(
+                "https://translate.google.com/translate_a/single",
+                params={
+                    "client": "gtx",
+                    "sl": "en",
+                    "tl": "zh-CN",
+                    "dt": "t",
+                    "q": text[:500],  # Google 非官方接口限制长度
+                },
+                headers={"User-Agent": "Mozilla/5.0 (compatible; PaperMonitor/1.0)"},
+                timeout=12,
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                # 返回格式：[[[translated, original, ...], ...], ...]
+                parts = []
+                for segment in data[0]:
+                    if segment and segment[0]:
+                        parts.append(segment[0])
+                result = "".join(parts).strip()
+                if result and result != text:
+                    time.sleep(0.3)  # 避免请求过快
+                    return result
+        except Exception as e:
+            if attempt < retries - 1:
+                time.sleep(1.5)
+    # 翻译失败时返回截断英文原文
+    fallback = text[:150].rsplit(" ", 1)[0] + "..." if len(text) > 150 else text
+    return fallback
 
 
 def summarize_and_translate(summary: str) -> str:
@@ -202,6 +384,8 @@ HOT_KEYWORDS = [
     "kv cache", "speculative", "quantization", "disaggregated", "prefill",
     "decode", "vllm", "sglang", "tensorrt", "deepseek", "moe", "attention",
     "transformer", "llm", "gpu", "pipeline", "parallelism", "token",
+    "nvlink", "rdma", "infiniband", "roce", "nccl", "interconnect",
+    "collective communication", "all-reduce", "gpu cluster",
 ]
 
 # 关键字候选词库（用于从标题/摘要中提取论文关键字）
@@ -215,6 +399,8 @@ KEYWORD_CANDIDATES = [
     "multi-head", "low-rank", "flash attention", "paged attention",
     "continuous batching", "prefix caching", "request scheduling",
     "model parallelism", "tensor parallelism", "CUDA", "SRAM", "DRAM",
+    "NVLink", "RDMA", "InfiniBand", "RoCE", "NCCL", "All-Reduce",
+    "GPU cluster", "GPU interconnect", "collective communication",
     "privacy", "confidential", "federated", "reinforcement learning",
     "chain-of-thought", "reasoning", "embodied", "multimodal", "VLM",
     "ASR", "OCR", "code generation", "benchmark",
@@ -234,10 +420,47 @@ def extract_keywords(title: str, summary: str, top_n: int = 5) -> str:
     ordered = title_hits + other_hits
     return ", ".join(ordered[:top_n]) if ordered else "LLM"
 
-# ---- HTML experimental 提取（优先方案） ----
+# ============================================================
+# arXiv HTML 内容提取（Abstract + Keywords）+ SQLite 缓存
+# ============================================================
 
-# HTML 提取结果缓存：{clean_id: (abstract, keywords)}
-_html_cache: dict = {}
+# 内存缓存（本次运行内避免重复 DB 查询）
+_html_mem_cache: dict = {}
+
+# 兼容旧引用名
+_html_cache = _html_mem_cache
+_pdf_cache = _html_mem_cache
+
+
+def _get_cached_paper_content(arxiv_id: str):
+    """从 SQLite 读取论文内容缓存，返回 (abstract, keywords_list) 或 None"""
+    if arxiv_id in _html_mem_cache:
+        return _html_mem_cache[arxiv_id]
+    db = get_paper_db()
+    row = db.execute(
+        "SELECT abstract, keywords_json FROM paper_content_cache WHERE arxiv_id=?",
+        (arxiv_id,)
+    ).fetchone()
+    if row:
+        result = (row["abstract"], json.loads(row["keywords_json"]))
+        _html_mem_cache[arxiv_id] = result
+        return result
+    return None
+
+
+def _set_cached_paper_content(arxiv_id: str, abstract: str, keywords: list):
+    """将论文内容写入 SQLite 缓存"""
+    now = datetime.utcnow().isoformat()
+    db = get_paper_db()
+    try:
+        db.execute(
+            "INSERT OR REPLACE INTO paper_content_cache (arxiv_id, abstract, keywords_json, cached_at) VALUES (?,?,?,?)",
+            (arxiv_id, abstract, json.dumps(keywords, ensure_ascii=False), now)
+        )
+        db.commit()
+    except Exception:
+        pass
+    _html_mem_cache[arxiv_id] = (abstract, keywords)
 
 
 def fetch_arxiv_html(paper_id: str) -> str:
@@ -332,21 +555,22 @@ def get_paper_content_from_html(paper: dict) -> tuple:
     """
     优先通过 arXiv HTML (experimental) 链接提取 Abstract 和 Keywords。
     失败时 fallback 到 arXiv API 返回的 summary。
+    结果写入 SQLite 永久缓存，下次运行直接命中缓存无需重新请求。
     返回 (abstract_text, keywords_list)。
     """
     paper_id = paper["id"]
     clean_id = re.sub(r'v\d+$', '', paper_id)
 
-    # 命中缓存
-    if clean_id in _html_cache:
-        return _html_cache[clean_id]
+    # 1. 查 SQLite 缓存
+    cached = _get_cached_paper_content(clean_id)
+    if cached is not None:
+        return cached
 
     print(f"  🌐 获取 HTML [{clean_id}] ...", file=sys.stderr)
 
     html_text = fetch_arxiv_html(paper_id)
     if html_text:
         abstract, keywords = extract_from_html(html_text)
-        # 如果 HTML 提取的 abstract 太短，fallback 到 API 摘要
         if len(abstract) < 80:
             print(f"  ⚠️ HTML abstract 太短，fallback 到 API summary [{clean_id}]", file=sys.stderr)
             abstract = paper["summary"]
@@ -355,8 +579,9 @@ def get_paper_content_from_html(paper: dict) -> tuple:
         print(f"  ⚠️ HTML 不可用，使用 API summary [{clean_id}]", file=sys.stderr)
         result = (paper["summary"], [])
 
-    _html_cache[clean_id] = result
-    # 避免请求过快
+    # 2. 写入 SQLite 缓存
+    _set_cached_paper_content(clean_id, result[0], result[1])
+
     time.sleep(0.3)
     return result
 
@@ -498,7 +723,8 @@ def extract_paper_keywords(summary: str) -> list:
     return []
 
 
-def extract_keyphrases_en(text: str, title: str = "", top_n: int = 5) -> list:
+def extract_keyphrases_en(text: str, title: str = "", top_n: int = 5,
+                          dynamic_phrases: list = None) -> list:
     """
     当论文没有 Keywords 章节时，从 Abstract（+标题）中提取 top_n 个英文关键短语。
     全程英文，不翻译，短语能直观反映论文核心技术贡献。
@@ -661,8 +887,14 @@ def extract_keyphrases_en(text: str, title: str = "", top_n: int = 5) -> list:
     found = []   # [(display_form, score)]
     covered_words = set()
 
+    # 合并静态词典 + 动态词典（按短语长度降序，长短语优先匹配）
+    combined_phrases = sorted(
+        list(DOMAIN_PHRASES) + [(p, d) for p, d in (dynamic_phrases or [])],
+        key=lambda x: -len(x[0])
+    )
+
     # 第一步：精确匹配领域短语词典（按长度降序，优先匹配长短语）
-    for phrase_lower, display in sorted(DOMAIN_PHRASES, key=lambda x: len(x[0]), reverse=True):
+    for phrase_lower, display in combined_phrases:
         if phrase_lower in text_lower:
             # 计算权重：在 abstract 中出现次数 + 标题中出现 +5
             score = text_lower.count(phrase_lower)
@@ -754,6 +986,73 @@ def extract_nouns_top5(text: str) -> list:
     return extract_keyphrases_zh(text, top_n=5)
 
 
+# ============================================================
+# 论文关键词提取 + SQLite 缓存（用于词云）
+# ============================================================
+
+# 本次运行的动态词典（懒加载，只加载一次）
+_dynamic_phrases_cache: list = None
+
+
+def _get_dynamic_phrases() -> list:
+    """懒加载动态词典，只在第一次调用时从 SQLite 读取"""
+    global _dynamic_phrases_cache
+    if _dynamic_phrases_cache is None:
+        _dynamic_phrases_cache = _load_dynamic_domain_phrases()
+        if _dynamic_phrases_cache:
+            print(f"  📚 动态词典已加载：{len(_dynamic_phrases_cache)} 条", file=sys.stderr)
+    return _dynamic_phrases_cache
+
+
+def get_paper_keywords_cached(arxiv_id: str, abstract: str, title: str,
+                               html_keywords: list = None) -> list:
+    """
+    获取论文关键词（用于词云），带 SQLite 缓存。
+    优先级：
+    1. SQLite keyword_cache 命中 → 直接返回
+    2. HTML 提取的 Keywords 章节 → 写入缓存后返回
+    3. 用静态+动态词典从 Abstract 提取 → 写入缓存后返回
+
+    arxiv_id: 干净的 arXiv ID（无版本号）
+    abstract: 论文摘要文本
+    title: 论文标题
+    html_keywords: HTML 页面提取的 Keywords 列表（可为 None）
+    """
+    db = get_paper_db()
+
+    # 1. 查 SQLite 缓存
+    row = db.execute(
+        "SELECT keywords_json FROM paper_keyword_cache WHERE arxiv_id=?",
+        (arxiv_id,)
+    ).fetchone()
+    if row:
+        return json.loads(row["keywords_json"])
+
+    # 2. 确定关键词来源
+    if html_keywords and len(html_keywords) >= 2:
+        # HTML Keywords 章节（质量最高）
+        keywords = [kw.strip().strip('.,;·•-–—') for kw in html_keywords[:6]
+                    if kw and 2 <= len(kw.strip()) <= 60]
+    else:
+        # 用静态+动态词典从 Abstract + 标题提取
+        dynamic = _get_dynamic_phrases()
+        keywords = extract_keyphrases_en(abstract, title=title, top_n=6,
+                                         dynamic_phrases=dynamic)
+
+    # 3. 写入 SQLite 缓存
+    now = datetime.utcnow().isoformat()
+    try:
+        db.execute(
+            "INSERT OR REPLACE INTO paper_keyword_cache (arxiv_id, keywords_json, cached_at) VALUES (?,?,?)",
+            (arxiv_id, json.dumps(keywords, ensure_ascii=False), now)
+        )
+        db.commit()
+    except Exception:
+        pass
+
+    return keywords
+
+
 # ---- Semantic Scholar 引用数据缓存 ----
 # {clean_arxiv_id: {"citationCount": int, "influentialCitationCount": int}}
 _ss_metrics_cache: dict = {}
@@ -766,16 +1065,25 @@ _hf_metrics_cache: dict = {}
 # {clean_arxiv_id: int}
 _arxiv_version_cache: dict = {}
 
+# ---- Rate limit 全局标志：触发后本次运行停止对应 API 请求 ----
+_ss_rate_limited: bool = False
+_hf_rate_limited: bool = False
+
 
 def fetch_hf_paper_metrics(arxiv_id: str) -> dict:
     """
     从 Hugging Face Papers API 获取论文点赞数、评论数、GitHub repo 和 star 数。
     arxiv_id: 干净的 arXiv ID（如 '2501.12599'）
     返回 {"upvotes": int, "comments": int, "githubRepo": str, "githubStars": int}
+    遇到 429 时设置全局标志，本次运行后续调用直接返回零值。
     """
+    global _hf_rate_limited
+    _EMPTY = {"upvotes": 0, "comments": 0, "githubRepo": "", "githubStars": 0}
     clean_id = re.sub(r'v\d+$', '', arxiv_id)
     if clean_id in _hf_metrics_cache:
         return _hf_metrics_cache[clean_id]
+    if _hf_rate_limited:
+        return _EMPTY
     try:
         url = f"https://huggingface.co/api/papers/{clean_id}"
         resp = requests.get(url, timeout=10)
@@ -789,12 +1097,17 @@ def fetch_hf_paper_metrics(arxiv_id: str) -> dict:
             }
             _hf_metrics_cache[clean_id] = result
             return result
+        elif resp.status_code == 429:
+            _hf_rate_limited = True
+            print("  ⚠️ HuggingFace API 限流，本次运行停止请求 HF API", file=sys.stderr)
+            _hf_metrics_cache[clean_id] = _EMPTY
+            return _EMPTY
         else:
-            _hf_metrics_cache[clean_id] = {"upvotes": 0, "comments": 0, "githubRepo": "", "githubStars": 0}
-            return {"upvotes": 0, "comments": 0, "githubRepo": "", "githubStars": 0}
+            _hf_metrics_cache[clean_id] = _EMPTY
+            return _EMPTY
     except Exception:
-        _hf_metrics_cache[clean_id] = {"upvotes": 0, "comments": 0, "githubRepo": "", "githubStars": 0}
-        return {"upvotes": 0, "comments": 0, "githubRepo": "", "githubStars": 0}
+        _hf_metrics_cache[clean_id] = _EMPTY
+        return _EMPTY
 
 
 def get_arxiv_version(paper_id: str) -> int:
@@ -816,9 +1129,17 @@ def fetch_semantic_scholar_metrics(paper_ids: list) -> dict:
     批量从 Semantic Scholar API 获取论文引用数据。
     paper_ids: arXiv ID 列表（如 ['2501.12599', '2412.19437']）
     返回 {clean_id: {"citationCount": int, "influentialCitationCount": int}}
+    遇到 429 rate limit 时设置全局标志，本次运行后续调用直接返回空。
     """
+    global _ss_rate_limited
     if not paper_ids:
         return {}
+
+    # 若已触发限流，直接返回已缓存的部分（不再发起请求）
+    if _ss_rate_limited:
+        return {re.sub(r'v\d+$', '', pid): _ss_metrics_cache.get(re.sub(r'v\d+$', '', pid),
+                {"citationCount": 0, "influentialCitationCount": 0})
+                for pid in paper_ids}
 
     # 过滤掉已缓存的
     uncached = [re.sub(r'v\d+$', '', pid) for pid in paper_ids
@@ -862,6 +1183,8 @@ def fetch_semantic_scholar_metrics(paper_ids: list) -> dict:
                         _ss_metrics_cache[pid] = metrics
                         result[pid] = metrics
                 else:
+                    _ss_rate_limited = True
+                    print("  ⚠️ Semantic Scholar 持续限流，本次运行停止请求 SS API", file=sys.stderr)
                     for pid in batch:
                         _ss_metrics_cache[pid] = {"citationCount": 0, "influentialCitationCount": 0}
             else:
@@ -1001,13 +1324,16 @@ def build_top10_table(all_papers: dict) -> str:
         return "_暂无数据_"
 
     lines = []
-    lines.append("| 排名 | 标题 | 中文摘要总结 | 论文关键字 | 发布者 | 热度分 | 发布日期 |")
+    lines.append("| 排名 | 标题 | 摘要 | 论文关键字 | 发布者 | 热度分 | 发布日期 |")
     lines.append("|------|------|------------|----------|---------|--------|---------|")
 
     for rank, (score, paper, hit_count, metrics, hf_metrics, arxiv_ver) in enumerate(top10, 1):
         title = paper["title"].replace("|", "\\|")
         summary = format_summary(paper["summary"], max_len=400).replace("|", "\\|")
-        kw_list = extract_keyphrases_en(paper["summary"], title=paper["title"], top_n=5)
+        kw_list = get_paper_keywords_cached(
+            re.sub(r'v\d+$', '', paper["id"]),
+            paper["summary"], paper["title"]
+        )
         keywords = ", ".join(kw_list).replace("|", "\\|")
         affiliation = extract_affiliation(paper["summary"], paper["authors"]).replace("|", "\\|")
         published = paper["published"]
@@ -1082,8 +1408,8 @@ def build_table(papers: list) -> str:
 
 def build_echarts_wordcloud_data(all_papers_map: dict) -> list:
     """
-    从所有论文的 PDF Keywords 字段提取关键词频率，返回 ECharts wordCloud 数据格式。
-    同时把搜索所用的 TOPICS keywords 也纳入词云，并固定保留 vLLM / SGLang。
+    从所有论文的关键词提取词频，返回 ECharts wordCloud 数据格式。
+    关键词提取结果通过 SQLite 缓存，避免重复计算。
     [{name: "keyword", value: count}, ...]
     """
     word_freq: dict = {}
@@ -1093,30 +1419,29 @@ def build_echarts_wordcloud_data(all_papers_map: dict) -> list:
         for kw in topic.get("keywords", []):
             kw = kw.strip()
             if kw:
-                word_freq[kw] = word_freq.get(kw, 0) + 3  # 基础权重 3
+                word_freq[kw] = word_freq.get(kw, 0) + 3
 
-    # ② 固定保留 vLLM 和 SGLang，确保始终出现在词云中
+    # ② 固定保留 vLLM 和 SGLang
     for fixed_kw in ["vLLM", "SGLang"]:
-        word_freq[fixed_kw] = word_freq.get(fixed_kw, 0) + 5  # 额外加权，保证可见
+        word_freq[fixed_kw] = word_freq.get(fixed_kw, 0) + 5
 
-    # ③ 从论文内容中提取关键词并叠加权重
+    # ③ 从论文内容中提取关键词并叠加权重（使用 SQLite 缓存）
     for pid, (paper, hit_count) in all_papers_map.items():
-        # 优先使用 HTML experimental 提取的 Keywords
         clean_id = re.sub(r'v\d+$', '', paper["id"])
-        if clean_id in _html_cache:
-            _, kws = _html_cache[clean_id]
-        else:
-            kws = []
 
-        if not kws:
-            # fallback：从摘要文本提取 Keywords 字段
-            kws = extract_paper_keywords(paper["summary"])
-        if not kws:
-            # 最终 fallback：从 Abstract 提取英文名词短语（词云保持英文）
-            abstract = paper["summary"]
-            if clean_id in _html_cache:
-                abstract, _ = _html_cache[clean_id]
-            kws = extract_keyphrases_en(abstract, title=paper.get("title", ""), top_n=5)
+        # 获取 HTML 提取的 abstract 和 keywords
+        cached_content = _get_cached_paper_content(clean_id)
+        if cached_content:
+            pdf_abstract, html_keywords = cached_content
+        else:
+            pdf_abstract = paper["summary"]
+            html_keywords = []
+
+        # 使用带 SQLite 缓存的关键词提取
+        kws = get_paper_keywords_cached(
+            clean_id, pdf_abstract, paper.get("title", ""),
+            html_keywords=html_keywords
+        )
 
         for kw in kws:
             weight = 1 + hit_count * 0.5
@@ -1150,13 +1475,8 @@ def build_html_report(all_papers_map: dict, total_found: int) -> str:
     scored.sort(key=lambda x: x[0], reverse=True)
     top10 = scored[:10]
 
-    # 热度分归一化到 0-100
-    max_score = scored[0][0] if scored else 1.0
-    min_score = scored[-1][0] if scored else 0.0
-    score_range = max_score - min_score if max_score != min_score else 1.0
-
     def normalize_score(s):
-        return round((s - min_score) / score_range * 100)
+        return round(s)
 
     rows_html = ""
     for rank, (score, paper, hit_count, metrics, hf_metrics, arxiv_ver) in enumerate(top10, 1):
@@ -1172,17 +1492,11 @@ def build_html_report(all_papers_map: dict, total_found: int) -> str:
         # hover 显示 PDF 原文 Abstract（英文）
         original_en_escaped = pdf_abstract.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
 
-        # 关键词：优先来自 HTML Keywords 章节（英文原文），fallback 到 Abstract 提取英文关键短语
-        if pdf_keywords:
-            # HTML 提取的 Keywords 直接用英文，做格式清理
-            paper_kws = []
-            for kw in pdf_keywords[:6]:
-                kw = kw.strip().strip('.,;·•-–—')
-                if kw and 2 <= len(kw) <= 60:
-                    paper_kws.append(kw)
-        else:
-            # 没有 Keywords 章节：从 Abstract + 标题提取英文关键短语
-            paper_kws = extract_keyphrases_en(pdf_abstract, title=paper["title"], top_n=5)
+        # 关键词：优先来自 HTML Keywords 章节（英文原文），经 SQLite 缓存
+        paper_kws = get_paper_keywords_cached(
+            clean_id, pdf_abstract, paper["title"],
+            html_keywords=pdf_keywords
+        )
 
         affiliation = extract_affiliation(pdf_abstract, paper["authors"]).replace("<", "&lt;").replace(">", "&gt;")
         published = paper["published"]
@@ -1226,7 +1540,7 @@ def build_html_report(all_papers_map: dict, total_found: int) -> str:
             <td class="hot-cell">
                 <span class="hot-score">{norm_score}</span>
                 <div class="hot-bar-bg"><div class="hot-bar" style="width:{norm_score}%;background:{bar_color}"></div></div>
-                <div class="hot-badges">{cite_badge}{inf_badge}{hf_badge}{ver_badge}{fire_badge}</div>
+                <div class="hot-badges">{cite_badge}{hf_badge}{ver_badge}{fire_badge}</div>
             </td>
             <td class="date-cell">{published}</td>
         </tr>"""
@@ -1276,7 +1590,25 @@ def build_html_report(all_papers_map: dict, total_found: int) -> str:
             code_td = f'<a href="{github_repo}" target="_blank" style="color:#4ade80;font-size:0.75rem;font-weight:600">✅ Code{stars_str}</a>'
         else:
             code_td = '<span style="color:#4a5568">—</span>'
-        all_papers_rows += f'<tr><td>{i}</td><td><a href="{url}" target="_blank">{t}</a></td><td>{pub}</td><td>{ns}</td><td style="text-align:center">{cite_td}</td><td style="text-align:center">{inf_td}</td><td style="text-align:center">{hf_td}</td><td style="text-align:center">{ver_td}</td><td style="text-align:center">{code_td}</td></tr>\n'
+        all_papers_rows += f'<tr><td>{i}</td><td><a href="{url}" target="_blank">{t}</a></td><td>{pub}</td><td>{ns}</td><td style="text-align:center">{cite_td}</td><td style="text-align:center">{hf_td}</td><td style="text-align:center">{ver_td}</td><td style="text-align:center">{code_td}</td></tr>\n'
+
+    # 顶会论文板块（venue_monitor 集成）
+    if _VENUE_MONITOR_AVAILABLE:
+        try:
+            cur_year = datetime.now().year
+            venue_section = build_venue_section_html(
+                years=[cur_year, cur_year - 1],
+                limit_per_venue=10,
+                auto_refresh=True,
+            )
+            venue_css_placeholder = VENUE_CSS
+        except Exception as _ve:
+            print(f"[paper_monitor] 顶会板块生成失败: {_ve}", file=sys.stderr)
+            venue_section = ""
+            venue_css_placeholder = ""
+    else:
+        venue_section = ""
+        venue_css_placeholder = ""
 
     html = f"""<!DOCTYPE html>
 <html lang="zh-CN">
@@ -1424,6 +1756,7 @@ def build_html_report(all_papers_map: dict, total_found: int) -> str:
 
   .table-wrap {{
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     border-radius: 14px;
     border: 1px solid var(--border);
     background: var(--surface);
@@ -1945,9 +2278,46 @@ def build_html_report(all_papers_map: dict, total_found: int) -> str:
   .footer a {{ color: var(--accent); text-decoration: none; }}
 
   @media (max-width: 768px) {{
+    body {{ padding: 16px 10px 60px; }}
     .header {{ flex-direction: column; align-items: flex-start; gap: 12px; }}
-    .summary-cell, .kw-cell {{ display: none; }}
+    .header-left h1 {{ font-size: 1.2rem; }}
+    .header-right {{ width: 100%; display: flex; flex-wrap: wrap; gap: 6px; }}
+    .meta-tag {{ margin-left: 0; }}
+    .stats-bar {{ gap: 8px; }}
+    .stat-card {{ min-width: calc(50% - 4px); padding: 12px 14px; }}
+    .stat-card .stat-value {{ font-size: 1.3rem; }}
+    /* 主表格：横滚 + 隐藏次要列 */
+    .table-wrap {{ border-radius: 10px; }}
+    table {{ min-width: 480px; font-size: 0.82rem; }}
+    thead th {{ padding: 10px 10px; }}
+    td {{ padding: 10px 10px; }}
+    /* 隐藏摘要、关键词、发布者列 */
+    .summary-cell, .kw-cell, .affil-cell {{ display: none; }}
+    thead th:nth-child(3),
+    thead th:nth-child(4),
+    thead th:nth-child(5) {{ display: none; }}
+    .title-cell {{ min-width: 180px; max-width: 220px; }}
+    /* 词云 */
+    #wordcloud-chart {{ height: 220px !important; }}
+    /* 搜索关键词区域 */
+    .search-kw-row {{ flex-direction: column; gap: 6px; }}
+    .search-kw-topic {{ min-width: unset; }}
+    /* 所有论文列表 */
+    .all-papers-table {{ min-width: 480px; font-size: 0.78rem; }}
+    /* 公式区 */
+    .formula-dims {{ grid-template-columns: 1fr; }}
+    .footer {{ flex-direction: column; gap: 4px; }}
   }}
+
+  @media (max-width: 480px) {{
+    .header-left h1 {{ font-size: 1rem; }}
+    .stat-card {{ min-width: calc(50% - 4px); }}
+    .stat-card .stat-value {{ font-size: 1.1rem; }}
+    table {{ font-size: 0.76rem; }}
+    .hot-score {{ font-size: 0.9rem; }}
+    .hot-bar-bg {{ width: 50px; }}
+  }}
+{venue_css_placeholder}
 </style>
 </head>
 <body>
@@ -1982,6 +2352,8 @@ def build_html_report(all_papers_map: dict, total_found: int) -> str:
     </div>
   </div>
 
+  {venue_section}
+
   <p class="section-title">🏆 本周热门论文 Top 10 — 综合热度排名</p>
 
   <div class="table-wrap">
@@ -1990,7 +2362,7 @@ def build_html_report(all_papers_map: dict, total_found: int) -> str:
         <tr>
           <th>排名</th>
           <th>标题</th>
-          <th>中文摘要</th>
+          <th>摘要</th>
           <th>关键词</th>
           <th>发布者</th>
           <th>热度分 (0-100)</th>
@@ -2016,7 +2388,6 @@ def build_html_report(all_papers_map: dict, total_found: int) -> str:
           <th>发布日期</th>
           <th>热度分</th>
           <th>引用次数</th>
-          <th>影响力引用</th>
           <th>HF 点赞</th>
           <th>arXiv 版本</th>
           <th>GitHub 代码</th>
@@ -2081,7 +2452,6 @@ def build_html_report(all_papers_map: dict, total_found: int) -> str:
   </section>
 
   <footer class="footer">
-    <span>热度评分 = 引用次数（25）+ 时效性（20）+ HF点赞（20）+ GitHub/PWC代码（25）+ arXiv版本（5）+ 跨分类命中（5）= 满分100分</span>
     <span>数据来源: <a href="https://arxiv.org" target="_blank">arXiv.org</a></span>
   </footer>
 </div>
@@ -2245,7 +2615,7 @@ def push_to_github(html_filename: str, html_content: str, date_str: str) -> str:
             f.write(html_content)
 
         # 写入按日期归档的文件
-        archive_name = f"report_{date_str}.html"
+        archive_name = f"paper_report_{date_str}.html"
         archive_path = os.path.join(repo_dir, archive_name)
         shutil.copy(html_filename, archive_path)
 
@@ -2262,7 +2632,7 @@ def push_to_github(html_filename: str, html_content: str, date_str: str) -> str:
                 return f"⚠️ Push 失败: {result2.stderr.decode()}"
 
         # 返回 GitHub Pages 完整链接（带具体文件名）
-        pages_url = f"https://feiqiangs.github.io/ai_paper_summary/report_{date_str}.html"
+        pages_url = f"https://feiqiangs.github.io/ai_paper_summary/paper_report_{date_str}.html"
         return pages_url
 
     except subprocess.CalledProcessError as e:
