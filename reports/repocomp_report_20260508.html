@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>vLLM vs SGLang 代码对比分析 2026-05-08</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+         background: #0f1117; color: #e2e8f0; line-height: 1.6; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+  h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 4px;
+        background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent; }
+  .subtitle { color: #94a3b8; margin-bottom: 24px; font-size: 0.9rem; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+  .card { background: #1e2433; border-radius: 12px; padding: 20px;
+           border: 1px solid #2d3748; }
+  .card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 16px;
+                 display: flex; align-items: center; gap: 8px; }
+  .vllm-color { color: #60a5fa; }
+  .sglang-color { color: #34d399; }
+  .section-title { font-size: 1.3rem; font-weight: 700; margin: 28px 0 16px;
+                    padding-bottom: 8px; border-bottom: 2px solid #2d3748; }
+  .insight-card { background: #252d3d; border-radius: 8px; padding: 16px;
+                   margin-bottom: 12px; border-left: 3px solid #667eea; }
+  .insight-header { display: flex; justify-content: space-between; align-items: flex-start;
+                     margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
+  .insight-title { font-weight: 600; font-size: 0.95rem; }
+  .insight-meta { font-size: 0.8rem; color: #94a3b8; display: flex; gap: 6px; align-items: center; }
+  .insight-desc { font-size: 0.875rem; color: #cbd5e1; }
+  .badge { padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+  .badge-easy   { background: #065f46; color: #6ee7b7; }
+  .badge-medium { background: #92400e; color: #fcd34d; }
+  .badge-hard   { background: #7f1d1d; color: #fca5a5; }
+  .empty { color: #64748b; font-style: italic; padding: 12px 0; }
+  .stats-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .stats-table th, .stats-table td { padding: 6px 10px; text-align: left;
+                                       border-bottom: 1px solid #2d3748; }
+  .stats-table th { color: #94a3b8; font-weight: 500; }
+  .summary-nums { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+                   margin-bottom: 24px; }
+  @media (max-width: 480px) { .summary-nums { grid-template-columns: repeat(2, 1fr); } }
+  .num-card { background: #1e2433; border-radius: 8px; padding: 16px; text-align: center;
+               border: 1px solid #2d3748; }
+  .num-val { font-size: 2rem; font-weight: 700; color: #667eea; }
+  .num-label { font-size: 0.8rem; color: #94a3b8; margin-top: 4px; }
+  .footer { text-align: center; color: #475569; font-size: 0.8rem; margin-top: 40px;
+             padding-top: 20px; border-top: 1px solid #2d3748; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>⚔️ vLLM vs SGLang 代码对比分析</h1>
+  <p class="subtitle">生成时间：2026-05-08 12:56 | 分析周期：2026-05-08</p>
+
+  <div class="summary-nums">
+    <div class="num-card">
+      <div class="num-val">39</div>
+      <div class="num-label">vLLM 新增 Commits</div>
+    </div>
+    <div class="num-card">
+      <div class="num-val">40</div>
+      <div class="num-label">SGLang 新增 Commits</div>
+    </div>
+    <div class="num-card">
+      <div class="num-val">21</div>
+      <div class="num-label">🔴 高价值借鉴点</div>
+    </div>
+    <div class="num-card">
+      <div class="num-val">47</div>
+      <div class="num-label">总计借鉴点</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title"><span class="vllm-color">🔵 vLLM</span> 模块活跃度</div>
+      <table class='stats-table'><tr><th>模块</th><th>Commits</th></tr><tr><td>推理引擎核心</td><td>12</td></tr><tr><td>其他</td><td>10</td></tr><tr><td>MoE专家路由</td><td>8</td></tr><tr><td>CUDA内核优化</td><td>5</td></tr><tr><td>量化与压缩</td><td>5</td></tr><tr><td>注意力机制</td><td>4</td></tr><tr><td>服务接口</td><td>4</td></tr><tr><td>LoRA/适配器</td><td>3</td></tr><tr><td>调度器</td><td>3</td></tr><tr><td>分布式通信</td><td>3</td></tr><tr><td>多模态</td><td>2</td></tr><tr><td>批处理与连续批</td><td>1</td></tr><tr><td>投机解码</td><td>1</td></tr></table>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="sglang-color">🟢 SGLang</span> 模块活跃度</div>
+      <table class='stats-table'><tr><th>模块</th><th>Commits</th></tr><tr><td>其他</td><td>9</td></tr><tr><td>CUDA内核优化</td><td>9</td></tr><tr><td>多模态</td><td>8</td></tr><tr><td>调度器</td><td>7</td></tr><tr><td>推理引擎核心</td><td>6</td></tr><tr><td>MoE专家路由</td><td>5</td></tr><tr><td>服务接口</td><td>4</td></tr><tr><td>投机解码</td><td>4</td></tr><tr><td>注意力机制</td><td>4</td></tr><tr><td>KV Cache管理</td><td>3</td></tr><tr><td>量化与压缩</td><td>3</td></tr><tr><td>LoRA/适配器</td><td>2</td></tr></table>
+    </div>
+  </div>
+
+  <h2 class="section-title">🔵→🟢 vLLM 可借鉴给 SGLang 的优化</h2>
+  <h3 style="color:#f59e0b;margin-bottom:12px;">🔴 高价值</h3>
+  
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 GPU-CPU同步消除优化</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 注意力机制</span>
+                </div>
+                <div class="insight-desc">vLLM在多个注意力后端实现中消除了GPU-CPU同步操作，显著减少了推理延迟。这种优化通过异步操作和更精细的内存管理实现，适用于flashinfer、flex_attention、mamba_attn等多个后端。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 压缩张量配置非显式忽略优化</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 量化与压缩</span>
+                </div>
+                <div class="insight-desc">vLLM允许压缩张量配置中非显式指定的忽略规则，提高了配置灵活性。通过改进配置解析逻辑，支持更复杂的量化策略组合，减少硬编码限制。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 ROCm平台算子融合优化</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | 分布式通信</span>
+                </div>
+                <div class="insight-desc">vLLM在ROCm平台上实现了AITER AR+RMSNorm的无残差融合，通过将AllReduce和RMSNorm操作合并减少内核启动开销和内存带宽压力。这种硬件特定的深度优化能够显著提升AMD GPU上的推理性能。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 异步设备到主机数据传输管道</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | MoE专家路由</span>
+                </div>
+                <div class="insight-desc">vLLM使用设备缓存和异步D2H管道替代路由重放机制，减少GPU-CPU数据传输延迟，提升MoE路由效率。通过流水线化数据传输，隐藏了内存拷贝开销。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 冗余MoE缓冲区拷贝消除</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | MoE专家路由</span>
+                </div>
+                <div class="insight-desc">vLLM在AITER融合专家模块中消除了不必要的缓冲区拷贝操作，通过内存复用和原地操作减少内存带宽消耗，特别适用于大规模MoE模型推理。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 Helion配置解析延迟优化</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | CUDA内核优化</span>
+                </div>
+                <div class="insight-desc">vLLM通过优化Helion内核配置解析流程，显著降低了配置加载延迟。采用预编译配置模板和懒加载策略，减少运行时解析开销。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 FP8 W8A16混合专家量化支持</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | CUDA内核优化</span>
+                </div>
+                <div class="insight-desc">vLLM实现了FP8权重和W8A16激活的MoE量化技术，在CPU上实现高效的混合专家推理，显著降低内存占用和计算开销。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 GPU-CPU同步消除优化</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | 推理引擎核心</span>
+                </div>
+                <div class="insight-desc">vLLM在注意力实现中消除了GPU-CPU同步操作，通过优化内存访问模式和异步处理减少设备间通信开销。这项优化显著降低了推理延迟，特别是在高并发场景下效果明显。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 路由重放替换为设备缓存</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | 推理引擎核心</span>
+                </div>
+                <div class="insight-desc">vLLM用设备缓存和异步D2H流水线替代了路由重放机制，减少了内存复制开销和同步等待时间。这种架构改进提升了专家模型路由的效率，降低了端到端延迟。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 Laguna模型专用Flash Attention优化</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 投机解码</span>
+                </div>
+                <div class="insight-desc">vLLM为Laguna模型实现了xs dflash支持，针对特定模型架构进行Flash Attention的深度优化，相比通用实现有显著性能提升。这种针对特定模型架构的专用优化可以显著降低推理延迟。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 分布式KV传输HMA支持</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | 其他</span>
+                </div>
+                <div class="insight-desc">vLLM在KV连接器中增加了对HMA（Hierarchical Memory Access）的支持，这可以优化分布式环境下的内存访问模式，减少跨节点通信开销。SGLang目前可能缺乏类似的分布式内存访问优化机制。</div>
+            </div>
+  <h3 style="color:#94a3b8;margin:16px 0 12px;">其他优化点</h3>
+  
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 稀疏MLA持久化支持</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | 注意力机制</span>
+                </div>
+                <div class="insight-desc">vLLM为稀疏MLA后端增加了持久化支持，能够更好地处理稀疏注意力模式，提升长序列处理的效率。这对于处理具有特定注意力模式的模型特别有价值。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 门控DeltaNet注意力支持</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | 注意力机制</span>
+                </div>
+                <div class="insight-desc">vLLM新增了对Qwen 3.5/3.6门控DeltaNet注意力的CPU支持，这是一种新型的注意力机制变体，能够提供更好的计算效率和模型性能。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 CPU端FP8 W8A16 MoE支持</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | 量化与压缩</span>
+                </div>
+                <div class="insight-desc">vLLM在CPU上实现了FP8 W8A16混合专家系统支持，扩展了量化技术在非GPU环境的应用场景。通过CPU优化的量化内核，提升了边缘设备上的推理效率。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 延迟导入通信库优化</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 分布式通信</span>
+                </div>
+                <div class="insight-desc">vLLM实现了EPLB通信器的按需延迟导入机制，避免在不需要特定通信功能时加载相关依赖，减少内存占用和启动时间。这种精细化的资源管理对于大规模部署场景特别有价值。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 XPU设备out-of-place AllReduce</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | 分布式通信</span>
+                </div>
+                <div class="insight-desc">vLLM为Intel XPU设备实现了out-of-place AllReduce功能，支持原地和非原地操作模式，提供更大的灵活性。这种设备特定的通信原语优化能够更好地适配不同硬件特性。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 FP8 W8A16量化MoE支持</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | MoE专家路由</span>
+                </div>
+                <div class="insight-desc">vLLM在CPU端实现了FP8权重和W8A16激活的MoE支持，提供更高的计算密度和能效比，适用于边缘设备部署场景。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 Gated DeltaNet注意力机制优化</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | CUDA内核优化</span>
+                </div>
+                <div class="insight-desc">vLLM为Qwen 3.5/3.6模型实现了门控DeltaNet注意力机制，通过状态空间模型优化长序列处理，提升推理效率和内存使用效率。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 Fastokens分词器优化</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 推理引擎核心</span>
+                </div>
+                <div class="insight-desc">vLLM集成了Fastokens高性能分词器，支持更快的tokenization处理和多语言优化。这项优化对于处理长文本和高吞吐量场景特别有价值，可以减少预处理阶段的瓶颈。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 CPU端Gated DeltaNet注意力支持</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 推理引擎核心</span>
+                </div>
+                <div class="insight-desc">vLLM在CPU端实现了Gated DeltaNet注意力机制，为Qwen 3.5/3.6等模型提供高效的CPU推理支持。这项技术对于边缘计算和资源受限环境有重要价值。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 单进程执行器线程优化</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 其他</span>
+                </div>
+                <div class="insight-desc">vLLM的UniProcExecutor通过避免使用额外线程来减少上下文切换开销，提高了单进程执行效率。这种轻量级线程管理策略值得SGLang借鉴，特别是在资源受限的环境中。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 ROCm AITER模式重复模式检测</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 其他</span>
+                </div>
+                <div class="insight-desc">vLLM在AMD ROCm平台上实现了AITER模式的重复检测和优化，避免了重复的模式编译，提高了AMD GPU上的推理效率。SGLang可以借鉴这种平台特定的优化策略。</div>
+            </div>
+
+  <h2 class="section-title">🟢→🔵 SGLang 可借鉴给 vLLM 的优化</h2>
+  <h3 style="color:#f59e0b;margin-bottom:12px;">🔴 高价值</h3>
+  
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 多GPU MTP稳定性优化</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 注意力机制</span>
+                </div>
+                <div class="insight-desc">SGLang解决了在DSA模型上启用多张卡并行(MTP)时的卡顿问题，提供了更稳定的多GPU推理体验。这种稳定性优化对于大规模部署至关重要。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 MXINT4 MoE量化方案</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 量化与压缩</span>
+                </div>
+                <div class="insight-desc">SGLang实现了MXINT4混合专家量化方案，支持FlashInfer内核优化。通过权重重排和分组量化策略，在保持精度的同时显著减少内存占用。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 RadixAttention内存优化</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | 分布式通信</span>
+                </div>
+                <div class="insight-desc">SGLang独有的RadixAttention技术通过KV Cache的radix树结构实现跨请求的KV共享，大幅减少重复计算和内存占用。这种创新的注意力机制优化在长上下文场景下价值显著。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 动态批处理与流水线调度</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 分布式通信</span>
+                </div>
+                <div class="insight-desc">SGLang具备更灵活的动态批处理能力，支持混合精度、可变序列长度和复杂推理模式的智能调度，在处理异构请求时具有更好的资源利用率。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 多硬件平台统一优化内核</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | MoE专家路由</span>
+                </div>
+                <div class="insight-desc">SGLang为MUSA架构提供了统一优化的内核实现，包括MoE相关热操作，实现了跨硬件平台的性能一致性，减少平台特定的优化工作。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 MUSA AMD GPU内核优化</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | CUDA内核优化</span>
+                </div>
+                <div class="insight-desc">SGLang为AMD GPU提供了深度优化的内核实现，包括融合add-RMSNorm、MoE GeMV SwiGLU等关键操作，在MUSA架构上实现接近CUDA的性能。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 自适应推测解码V2支持</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | 推理引擎核心</span>
+                </div>
+                <div class="insight-desc">SGLang实现了自适应推测解码V2，能够动态调整推测解码策略基于实时性能指标。这种智能化的推测解码机制可以显著提升推理吞吐量，特别是在波动性工作负载下。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 投机解码算法注册表机制</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 投机解码</span>
+                </div>
+                <div class="insight-desc">SGLang引入了投机算法注册表，支持自定义投机算法的动态注册和切换，提供了更强的扩展性和灵活性。这种插件化架构使得新算法的集成更加便捷。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 自适应投机V2支持</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | 投机解码</span>
+                </div>
+                <div class="insight-desc">SGLang的SPEC V2实现了自适应投机机制，能够根据输入特性和模型状态动态调整投机策略，相比固定策略有更好的泛化能力。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 FlashInfer TRT-LLM AllReduce融合</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | 其他</span>
+                </div>
+                <div class="insight-desc">SGLang通过PDL（Pattern Description Language）启用了flashinfer::trtllm_allreduce_fusion，实现了高效的通信操作融合，显著减少了分布式训练/推理的通信开销。vLLM可以借鉴这种高性能通信优化技术。</div>
+            </div>
+  <h3 style="color:#94a3b8;margin:16px 0 12px;">其他优化点</h3>
+  
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 解码内核草稿扩展优化</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 注意力机制</span>
+                </div>
+                <div class="insight-desc">SGLang在TRTLLM后端使用解码内核进行草稿扩展，提升了speculative decoding的性能。这种优化能够加速推理过程，特别是在使用草稿模型时。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟢 Intel XPU MLA支持完善</span>
+                    <span class="insight-meta"><span class="badge badge-easy">Easy</span> | 注意力机制</span>
+                </div>
+                <div class="insight-desc">SGLang修复了Intel XPU平台上的flash_mla_get_workspace_size调用问题，提供了更好的Intel GPU支持，扩展了硬件兼容性。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 Ascend NPU MXFP8量化支持</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | 量化与压缩</span>
+                </div>
+                <div class="insight-desc">SGLang为Ascend NPU平台实现了MXFP8量化支持，专门针对Wan2.2扩散模型优化。通过硬件特定的量化方案，在NPU上实现了高效的推理性能。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 前端语言集成优化</span>
+                    <span class="insight-meta"><span class="badge badge-easy">Easy</span> | 分布式通信</span>
+                </div>
+                <div class="insight-desc">SGLang提供了更自然的前端语言集成，支持Pythonic的DSL设计，降低了复杂推理模式的定义门槛，在开发体验和可维护性方面有优势。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 AMD ROCm双流MoE支持</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | MoE专家路由</span>
+                </div>
+                <div class="insight-desc">SGLang在AMD ROCm平台上实现了双流MoE执行，充分利用AMD GPU的并行计算能力，提供更好的硬件利用率和大规模MoE模型支持。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 NPU专用MoE优化</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | MoE专家路由</span>
+                </div>
+                <div class="insight-desc">SGLang针对NPU硬件特性进行了深度优化，为特定模型（如Trinity-mini）提供高达90%的精度保持，展示了专用硬件上的MoE优化潜力。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 NPU扩散模型并行优化</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | CUDA内核优化</span>
+                </div>
+                <div class="insight-desc">SGLang在NPU上实现了可选择的并行VAE解码策略，为扩散模型提供了多硬件平台支持，优化了NPU上的推理流水线。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 两阶段约束推理语法</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | CUDA内核优化</span>
+                </div>
+                <div class="insight-desc">SGLang实现了严格思维模式的两阶段推理语法，通过语法管理和令牌过滤操作优化约束推理流程，提升复杂推理任务的准确性。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 Arm64 CPU架构全面支持</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | CUDA内核优化</span>
+                </div>
+                <div class="insight-desc">SGLang提供了完整的Arm64 CPU CI工作流和内核支持，包括Torch扩展和CMake构建系统优化，为边缘设备部署提供更好支持。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 推理/工具调用解析器自动检测</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 推理引擎核心</span>
+                </div>
+                <div class="insight-desc">SGLang能够从聊天模板自动检测推理和工具调用解析器，无需手动配置即可支持复杂的推理任务。这种自动化机制简化了多轮对话和工具调用场景的部署复杂度。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 多分支CFG并行化框架</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | 推理引擎核心</span>
+                </div>
+                <div class="insight-desc">SGLang重构了CFG并行化框架以支持多分支CFG，为LTX2等扩散模型提供更灵活的并行策略。这种架构对于复杂多模态推理任务的性能优化有重要意义。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 帧返回路径优化</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 推理引擎核心</span>
+                </div>
+                <div class="insight-desc">SGLang优化了帧返回路径，减少了多模态推理中的数据传输开销和内存占用。这项优化对于视频和图像生成类任务的实时性提升有显著效果。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 多任务处理(MTP)支持</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | 投机解码</span>
+                </div>
+                <div class="insight-desc">为Gemma 4模型添加了多任务处理支持，能够在单个推理过程中处理多个相关任务，提高硬件利用率。这种多任务协同优化对复杂工作负载特别有效。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 多模态模型URI处理优化</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 其他</span>
+                </div>
+                <div class="insight-desc">SGLang在多模态模型支持方面有更完善的URI处理机制，能够正确处理多模态模型的权重加载和流式处理。vLLM在多模态支持方面可以借鉴这些经验。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 HTTP客户端连接精细配置</span>
+                    <span class="insight-meta"><span class="badge badge-easy">Easy</span> | 其他</span>
+                </div>
+                <div class="insight-desc">SGLang在路由器层面提供了更细粒度的HTTP客户端连接配置，包括超时、保活等参数的精确控制，这在高并发推理场景中很有价值。vLLM可以借鉴这种网络连接优化策略。</div>
+            </div>
+
+  <div class="footer">AI Infra 监控系统 · 自动生成</div>
+</div>
+</body>
+</html>
