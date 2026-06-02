@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>vLLM vs SGLang 代码对比分析 2026-06-02</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+         background: #0f1117; color: #e2e8f0; line-height: 1.6; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+  h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 4px;
+        background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent; }
+  .subtitle { color: #94a3b8; margin-bottom: 24px; font-size: 0.9rem; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+  .card { background: #1e2433; border-radius: 12px; padding: 20px;
+           border: 1px solid #2d3748; }
+  .card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 16px;
+                 display: flex; align-items: center; gap: 8px; }
+  .vllm-color { color: #60a5fa; }
+  .sglang-color { color: #34d399; }
+  .section-title { font-size: 1.3rem; font-weight: 700; margin: 28px 0 16px;
+                    padding-bottom: 8px; border-bottom: 2px solid #2d3748; }
+  .insight-card { background: #252d3d; border-radius: 8px; padding: 16px;
+                   margin-bottom: 12px; border-left: 3px solid #667eea; }
+  .insight-header { display: flex; justify-content: space-between; align-items: flex-start;
+                     margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
+  .insight-title { font-weight: 600; font-size: 0.95rem; }
+  .insight-meta { font-size: 0.8rem; color: #94a3b8; display: flex; gap: 6px; align-items: center; }
+  .insight-desc { font-size: 0.875rem; color: #cbd5e1; }
+  .badge { padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+  .badge-easy   { background: #065f46; color: #6ee7b7; }
+  .badge-medium { background: #92400e; color: #fcd34d; }
+  .badge-hard   { background: #7f1d1d; color: #fca5a5; }
+  .empty { color: #64748b; font-style: italic; padding: 12px 0; }
+  .stats-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .stats-table th, .stats-table td { padding: 6px 10px; text-align: left;
+                                       border-bottom: 1px solid #2d3748; }
+  .stats-table th { color: #94a3b8; font-weight: 500; }
+  .summary-nums { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+                   margin-bottom: 24px; }
+  @media (max-width: 480px) { .summary-nums { grid-template-columns: repeat(2, 1fr); } }
+  .num-card { background: #1e2433; border-radius: 8px; padding: 16px; text-align: center;
+               border: 1px solid #2d3748; }
+  .num-val { font-size: 2rem; font-weight: 700; color: #667eea; }
+  .num-label { font-size: 0.8rem; color: #94a3b8; margin-top: 4px; }
+  .footer { text-align: center; color: #475569; font-size: 0.8rem; margin-top: 40px;
+             padding-top: 20px; border-top: 1px solid #2d3748; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>⚔️ vLLM vs SGLang 代码对比分析</h1>
+  <p class="subtitle">生成时间：2026-06-02 12:17 | 分析周期：2026-06-02</p>
+
+  <div class="summary-nums">
+    <div class="num-card">
+      <div class="num-val">29</div>
+      <div class="num-label">vLLM 新增 Commits</div>
+    </div>
+    <div class="num-card">
+      <div class="num-val">50</div>
+      <div class="num-label">SGLang 新增 Commits</div>
+    </div>
+    <div class="num-card">
+      <div class="num-val">21</div>
+      <div class="num-label">🔴 高价值借鉴点</div>
+    </div>
+    <div class="num-card">
+      <div class="num-val">50</div>
+      <div class="num-label">总计借鉴点</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title"><span class="vllm-color">🔵 vLLM</span> 模块活跃度</div>
+      <table class='stats-table'><tr><th>模块</th><th>Commits</th></tr><tr><td>推理引擎核心</td><td>7</td></tr><tr><td>其他</td><td>7</td></tr><tr><td>服务接口</td><td>5</td></tr><tr><td>注意力机制</td><td>4</td></tr><tr><td>CUDA内核优化</td><td>3</td></tr><tr><td>调度器</td><td>2</td></tr><tr><td>多模态</td><td>2</td></tr><tr><td>MoE专家路由</td><td>2</td></tr><tr><td>量化与压缩</td><td>1</td></tr><tr><td>分布式通信</td><td>1</td></tr></table>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="sglang-color">🟢 SGLang</span> 模块活跃度</div>
+      <table class='stats-table'><tr><th>模块</th><th>Commits</th></tr><tr><td>其他</td><td>14</td></tr><tr><td>MoE专家路由</td><td>8</td></tr><tr><td>调度器</td><td>8</td></tr><tr><td>推理引擎核心</td><td>7</td></tr><tr><td>多模态</td><td>7</td></tr><tr><td>投机解码</td><td>6</td></tr><tr><td>注意力机制</td><td>5</td></tr><tr><td>KV Cache管理</td><td>5</td></tr><tr><td>服务接口</td><td>2</td></tr><tr><td>量化与压缩</td><td>2</td></tr><tr><td>CUDA内核优化</td><td>2</td></tr><tr><td>分布式通信</td><td>1</td></tr></table>
+    </div>
+  </div>
+
+  <h2 class="section-title">🔵→🟢 vLLM 可借鉴给 SGLang 的优化</h2>
+  <h3 style="color:#f59e0b;margin-bottom:12px;">🔴 高价值</h3>
+  
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 KV Cache Offloading 防过时块机制</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 调度器</span>
+                </div>
+                <div class="insight-desc">vLLM 新增了防止卸载过时滑动窗口块的机制，解决了在滑动窗口注意力场景下KV缓存管理的准确性问题。这项优化确保只有真正过时的缓存块才会被卸载，避免了不必要的重新计算。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 稀疏NCCL权重传输优化</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | 分布式通信</span>
+                </div>
+                <div class="insight-desc">vLLM实现了稀疏NCCL通信协议，专门针对权重传输场景优化，支持原地更新减少内存开销。该技术通过识别权重矩阵中的稀疏模式，只传输非零元素，大幅降低通信带宽需求。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 FP8 Scaled矩阵乘法padding绕过优化</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | CUDA内核优化</span>
+                </div>
+                <div class="insight-desc">vLLM通过绕过padding操作，在CUTLASS FP8 scaled矩阵乘法中获得20%性能提升。该优化避免了不必要的内存填充操作，直接处理非对齐数据，减少内存带宽消耗。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 稀疏NCCL权重传输原地更新</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | 推理引擎核心</span>
+                </div>
+                <div class="insight-desc">vLLM实现了稀疏NCCL权重传输的原地更新机制，通过差分更新而非全量传输来减少通信开销。支持packed tensor广播和缓冲区复用，显著提升分布式训练效率。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 MRV2统一CUDA图池优化</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 投机解码</span>
+                </div>
+                <div class="insight-desc">vLLM在MRV2中移除了EAGLE专用的CUDA图池，改为与主模型共享图池。这种统一管理减少了内存碎片和池管理开销，提升了整体资源利用率。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 OpenAI Schema Fuzzing 稳定性优化</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 服务接口</span>
+                </div>
+                <div class="insight-desc">vLLM 增强了 OpenAI 协议的结构化标签错误处理能力，通过模糊测试确保服务接口对异常输入具有更强的鲁棒性。这项优化提升了服务在面对恶意或异常请求时的稳定性。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 Rust前端流式Generate端点</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | 其他</span>
+                </div>
+                <div class="insight-desc">vLLM在Rust前端实现了流式generate接口支持，提供了更高效的客户端交互方式。这对于需要实时响应的应用场景具有重要价值，可以显著改善用户体验。</div>
+            </div>
+  <h3 style="color:#94a3b8;margin:16px 0 12px;">其他优化点</h3>
+  
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 异构硬件CI测试规范化</span>
+                    <span class="insight-meta"><span class="badge badge-easy">Easy</span> | 调度器</span>
+                </div>
+                <div class="insight-desc">vLLM 对NIXL连接器CUDA轮安装进行了规范化处理，提升了在不同硬件环境下的CI测试稳定性。这种标准化的安装流程确保了分布式环境下硬件兼容性的可靠性。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 原地更新权重管理</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 分布式通信</span>
+                </div>
+                <div class="insight-desc">vLLM的原地更新机制避免了传统权重传输中的内存复制开销，直接在目标位置进行权重更新。这种设计特别适合分布式训练中的频繁权重同步场景，显著减少内存峰值使用。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 MoE旋转位置编码计算精度优化</span>
+                    <span class="insight-meta"><span class="badge badge-easy">Easy</span> | MoE专家路由</span>
+                </div>
+                <div class="insight-desc">vLLM修复了bailing_moe模型中partial_rotary_factor的错误计算，确保旋转位置编码计算的数值精度。这对于MoE模型的稳定性和推理质量至关重要，特别是对于大模型推理场景。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 生成式评分入口点重构</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | MoE专家路由</span>
+                </div>
+                <div class="insight-desc">vLLM重新组织了生成式评分入口点，提供了更清晰的前端接口设计。这种模块化的入口点设计有助于代码维护和扩展，特别适合复杂的MoE推理场景。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 CUDA图池管理优化</span>
+                    <span class="insight-meta"><span class="badge badge-easy">Easy</span> | CUDA内核优化</span>
+                </div>
+                <div class="insight-desc">vLLM移除了Eagle的专用CUDA图池，改为共享图池管理。这种优化减少了内存碎片，提高了图复用率，降低了图创建和销毁的开销。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 Mellum v2代码生成模型支持</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 推理引擎核心</span>
+                </div>
+                <div class="insight-desc">vLLM新增了对JetBrains Mellum v2代码生成模型的完整支持，包括模型加载、推理优化和配置适配，体现了对新模型架构的快速响应能力。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 多后端EAGLE测试稳定性优化</span>
+                    <span class="insight-meta"><span class="badge badge-easy">Easy</span> | 投机解码</span>
+                </div>
+                <div class="insight-desc">vLLM为EAGLE3测试增加了ROCm后端自动选择机制，避免硬编码注意力后端，提高了跨硬件平台的测试稳定性。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 PD+SpecDec集成测试完善</span>
+                    <span class="insight-meta"><span class="badge badge-easy">Easy</span> | 投机解码</span>
+                </div>
+                <div class="insight-desc">vLLM修复了Prefix Decoding与投机解码结合的测试用例中的double-BOS问题，展现了更成熟的集成测试体系。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 工具参数流式处理架构重构</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | 服务接口</span>
+                </div>
+                <div class="insight-desc">将非流式工具参数的刷新操作从服务层移至解析层，实现了更好的职责分离。这种架构优化提高了工具调用处理的模块化和可维护性。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 统一错误处理机制</span>
+                    <span class="insight-meta"><span class="badge badge-easy">Easy</span> | 服务接口</span>
+                </div>
+                <div class="insight-desc">在聊天完成和完成协议验证器中一致使用 VLLMValidationError，建立了标准化的错误处理模式。这种一致性提升了错误处理的可靠性和可调试性。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 InternLM2工具解析器集成</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 其他</span>
+                </div>
+                <div class="insight-desc">vLLM新增了对InternLM2模型工具调用功能的原生支持，扩展了模型的实用性和生态兼容性。这种模型特定功能的深度集成可以提升框架的竞争力。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 模块级服务器fixture优化</span>
+                    <span class="insight-meta"><span class="badge badge-easy">Easy</span> | 多模态</span>
+                </div>
+                <div class="insight-desc">vLLM通过使用module-scoped server fixture修复了音频视频测试的flaky问题，这种测试基础设施优化能显著提升多模态测试的稳定性。SGLang在扩散模型测试中也可以借鉴这种模块级资源管理策略。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟢 文档URL维护机制</span>
+                    <span class="insight-meta"><span class="badge badge-easy">Easy</span> | 多模态</span>
+                </div>
+                <div class="insight-desc">vLLM主动检查和替换损坏的外部资源链接，确保示例代码和文档的可用性。这种文档维护机制对多模态项目尤为重要，因为涉及大量外部媒体资源。</div>
+            </div>
+
+  <h2 class="section-title">🟢→🔵 SGLang 可借鉴给 vLLM 的优化</h2>
+  <h3 style="color:#f59e0b;margin-bottom:12px;">🔴 高价值</h3>
+  
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 自适应推测解码指标系统</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | 调度器</span>
+                </div>
+                <div class="insight-desc">SGLang 引入了自适应推测解码的细粒度指标收集和报告机制，能够动态调整推测解码策略。这种数据驱动的优化方法可以显著提升推测解码的效率和准确性。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 异步图像预处理和跨请求ViT批处理</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 调度器</span>
+                </div>
+                <div class="insight-desc">SGLang 实现了异步图像预处理机制，支持跨请求的Vision Transformer批处理，大幅提升了多模态推理的吞吐量。这种批处理优化对于视觉语言模型的高效部署至关重要。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 上下文并行与MoE融合架构</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | 分布式通信</span>
+                </div>
+                <div class="insight-desc">SGLang实现了上下文并行与融合MoE的深度集成，针对DeepSeek V4等大型MoE模型优化。该架构在保持模型质量的同时，通过专家路由优化和并行计算提升推理效率。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 256专家MoE融合门控扩展</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | MoE专家路由</span>
+                </div>
+                <div class="insight-desc">SGLang将kimi_k2_moe_fused_gate扩展到支持256个专家，采用MiMo V2 Flash架构。这显著提升了MoE模型的专家容量和推理效率，支持更大规模的专家网络。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 BF16标准A2A与DeepGEMM集成</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | MoE专家路由</span>
+                </div>
+                <div class="insight-desc">SGLang支持BF16精度的标准All-to-All通信与DeepGEMM运行器集成，优化了MoE专家间的数据传输效率。这对于分布式MoE推理的性能提升具有重要意义。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 Blackwell SM120架构原生支持</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | CUDA内核优化</span>
+                </div>
+                <div class="insight-desc">SGLang率先支持NVIDIA Blackwell SM120架构，针对新一代GPU的硬件特性进行深度优化。包括对新的Tensor Core和内存架构的专门适配，充分发挥硬件性能。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 DeepGEMM JIT预热并行编译</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | 推理引擎核心</span>
+                </div>
+                <div class="insight-desc">SGLang实现了DeepGEMM JIT编译的并行预热机制，通过per-PP-rank并行编译和智能缓存管理，显著减少了模型启动时的编译延迟。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 Spec Decoding优化路径</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 推理引擎核心</span>
+                </div>
+                <div class="insight-desc">SGLang针对topk=1场景优化了EAGLE推测解码，跳过不必要的cat/topk/sort/gather操作，实现了推理性能的显著提升。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 Topk=1快速路径优化</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 投机解码</span>
+                </div>
+                <div class="insight-desc">SGLang在topk=1时跳过cat/topk/sort/gather操作，直接使用链式结构，显著减少draft_forward的计算开销。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 自适应投机解码指标系统</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | 投机解码</span>
+                </div>
+                <div class="insight-desc">SGLang新增spec_num_steps/spec_num_draft_tokens等自适应指标，为动态调整投机策略提供量化依据。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 Spec V2树形草稿支持</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | 投机解码</span>
+                </div>
+                <div class="insight-desc">SGLang支持topk>1时的树形草稿生成，并在page_size==1时路由到spec-v2重叠worker，提升并行效率。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 智能采样参数推断</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 多模态</span>
+                </div>
+                <div class="insight-desc">SGLang实现了从任务类型自动推断扩散测试采样参数，减少了手动配置的复杂性。这种智能参数推断机制可以扩展到vLLM的多模态推理任务中。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 GPU-CPU混合卸载策略</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | 多模态</span>
+                </div>
+                <div class="insight-desc">SGLang支持同时使用CPU卸载和分层卸载，优化了大模型的内存使用效率。这种混合卸载策略对vLLM处理大尺寸多模态输入有重要参考价值。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🔴 预标记化VLM请求优化</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 多模态</span>
+                </div>
+                <div class="insight-desc">SGLang解决了预标记化VLM请求的重标记化漂移问题，确保token一致性。这种优化对vLLM处理预处理的视觉语言模型输入有直接借鉴意义。</div>
+            </div>
+  <h3 style="color:#94a3b8;margin:16px 0 12px;">其他优化点</h3>
+  
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 LoRA分块请求处理和测试框架</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 调度器</span>
+                </div>
+                <div class="insight-desc">SGLang 完善了LoRA分块请求的处理逻辑并建立了相应的测试框架，解决了LoRA适配器在分布式环境下的请求分割和合并问题。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 DeepSeek V4预填充优化</span>
+                    <span class="insight-meta"><span class="badge badge-easy">Easy</span> | 调度器</span>
+                </div>
+                <div class="insight-desc">SGLang 移除了DeepSeek V4预填充阶段的滑动窗口注意力池大小限制，允许更灵活的预填充策略，提升了特定模型架构的性能。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 NPU Profiler支持</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 调度器</span>
+                </div>
+                <div class="insight-desc">SGLang 增加了对NPU Profiler的支持，扩展了硬件性能分析能力，为异构硬件环境下的性能调优提供了更好的工具支持。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 非DeepEP的MoE执行引擎</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 分布式通信</span>
+                </div>
+                <div class="insight-desc">SGLang开发了不依赖DeepEP的独立MoE执行引擎，具有更好的可移植性和部署灵活性。该引擎针对不同的硬件架构进行了优化，支持多种精度计算。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 投机解码TopK=1快速路径优化</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | MoE专家路由</span>
+                </div>
+                <div class="insight-desc">SGLang在draft_forward中为topk=1场景跳过不必要的cat/topk/sort/gather操作，显著减少了计算开销。这种针对特定场景的优化对MoE推理的延迟优化很有价值。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 SM120 Blackwell桌面级GPU支持</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | MoE专家路由</span>
+                </div>
+                <div class="insight-desc">SGLang新增对SM120（Blackwell Desktop）的DeepSeek-V4推理支持，体现了对新硬件平台的快速适配能力。这对于MoE模型在新硬件上的部署很重要。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 NPU DeepEP模式错误修复</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | MoE专家路由</span>
+                </div>
+                <div class="insight-desc">SGLang修复了NPU上DeepEP模式的num_tokens_per_rdma_rank错误，提升了异构计算环境下的MoE推理稳定性。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 DeepSeek-V4 MoE架构专用优化</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | CUDA内核优化</span>
+                </div>
+                <div class="insight-desc">SGLang针对DeepSeek-V4的1.6T参数MoE架构进行了专门优化，包括专家路由、激活参数管理等。这些优化对其他大型MoE模型也具有参考价值。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 NPU硬件适配支持</span>
+                    <span class="insight-meta"><span class="badge badge-hard">Hard</span> | 推理引擎核心</span>
+                </div>
+                <div class="insight-desc">SGLang增加了对NPU硬件的自适应推测解码支持，通过专门的graph runner和硬件后端适配，扩展了推理框架的硬件兼容性。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 EAGLE测试框架重构</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 投机解码</span>
+                </div>
+                <div class="insight-desc">SGLang将EAGLE测试重构为共享fixture+kits+overlap矩阵的模块化结构，提升测试覆盖率和维护性。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 KV-Canary集成EAGLE</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 投机解码</span>
+                </div>
+                <div class="insight-desc">SGLang将KV-Canary检查机制集成到EAGLE草稿/验证路径，增强投机解码的可靠性验证。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 可选的内存哈希支持</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 服务接口</span>
+                </div>
+                <div class="insight-desc">SGLang 在 GenerateReqInput 中引入了可选的 mm_hashes 参数，允许调用方控制内存管理策略。这种细粒度的内存控制为特定场景提供了性能优化空间。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 NPU硬件平台文档化实践</span>
+                    <span class="insight-meta"><span class="badge badge-easy">Easy</span> | 其他</span>
+                </div>
+                <div class="insight-desc">SGLang在Ascend NPU等异构硬件平台上有系统的文档和最佳实践指南，包括详细的部署配置和性能优化建议。这种硬件生态的系统化文档对用户部署很有帮助。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟢 AMD CI/CD流程优化经验</span>
+                    <span class="insight-meta"><span class="badge badge-easy">Easy</span> | 其他</span>
+                </div>
+                <div class="insight-desc">SGLang在AMD平台上的CI/CD流程有较多实践经验，包括依赖版本锁定、测试标签管理和容器路径优化等。这些工程实践对多平台支持很重要。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 图像输出加速保存</span>
+                    <span class="insight-meta"><span class="badge badge-easy">Easy</span> | 多模态</span>
+                </div>
+                <div class="insight-desc">SGLang优化了PNG图像输出的保存速度，这对多模态生成任务的吞吐量提升至关重要。vLLM在处理图像生成输出时可以借鉴此优化。</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-title">🟠 模型对齐标准化</span>
+                    <span class="insight-meta"><span class="badge badge-medium">Medium</span> | 多模态</span>
+                </div>
+                <div class="insight-desc">SGLang将cosmos3文本打包与官方pipeline对齐，确保兼容性和标准化。这种与官方实现对齐的策略有助于vLLM的多模态模块生态建设。</div>
+            </div>
+
+  <div class="footer">AI Infra 监控系统 · 自动生成</div>
+</div>
+</body>
+</html>
